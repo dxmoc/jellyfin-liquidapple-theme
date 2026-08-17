@@ -5,7 +5,7 @@ with refracted edges, specular rim light, capsule controls and iOS spring
 motion. Dark only, and deliberately colourless — the artwork behind the glass is
 what supplies the colour.
 
-No JavaScript, no plugin, no external requests. One CSS file.
+No JavaScript, no plugin, no fonts or images fetched at runtime. One CSS file.
 
 ## Install
 
@@ -15,13 +15,23 @@ Dashboard → **General** → **Custom CSS**, paste this and save:
 @import url("https://cdn.jsdelivr.net/gh/dxmoc/jellyfin-liquidapple-theme@main/dist/liquidapple.min.css");
 ```
 
-> The `@import` route needs the repository to be **public** — jsDelivr cannot
-> read a private repo. While it is private, open
-> [`dist/liquidapple.min.css`](dist/liquidapple.min.css) and paste the whole
-> file into the Custom CSS box instead. Everything works the same; you just have
-> to re-paste to update.
+`@main` tracks the latest commit. Swap it for a tag — `@v0.1.0` — to pin a
+release and stop the theme changing under you.
 
-To pin a release rather than track `main`, swap `@main` for `@v0.1.0`.
+Prefer not to route through a third-party CDN? The same file is on GitHub Pages,
+which serves it as `text/css` too and updates on push:
+
+```css
+@import url("https://dxmoc.github.io/jellyfin-liquidapple-theme/dist/liquidapple.min.css");
+```
+
+Or skip URLs entirely and paste the contents of
+[`dist/liquidapple.min.css`](dist/liquidapple.min.css) straight into the box.
+
+> One thing that does **not** work: `raw.githubusercontent.com`. It serves
+> `Content-Type: text/plain` with `X-Content-Type-Options: nosniff`, so the
+> browser refuses the file as a stylesheet and the `@import` fails silently —
+> no console error, just an unstyled Jellyfin. Gist raw behaves the same.
 
 Custom CSS applies per-server to the web client and to any client that renders
 the web UI. Native apps (Android TV, Roku, Swiftfin) do not read it.
