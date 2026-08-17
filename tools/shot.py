@@ -5,6 +5,17 @@
 Disables whatever Custom CSS the server currently injects and injects the local
 build instead, so the theme can be reviewed against the real client without
 touching any server setting. Reuses the WS client from cdp.py.
+
+Environment:
+    LA_VIEWPORT=430x932   the emulated device viewport (default 1600x1400)
+    LA_SCROLL=1200        scroll this far down before capturing; a value <= 1 is
+                          read as a fraction of the page
+    LA_FULLPAGE=1         capture the whole page instead of one viewport, by
+                          growing the viewport to the page height first
+    LA_MOTION=1           emulate prefers-reduced-motion: no-preference. Windows
+                          animations are off on this machine, so reduce is
+                          otherwise always on and the motion path — springs,
+                          entrances — cannot be reviewed at all
 """
 
 import base64
@@ -22,6 +33,10 @@ from cdp import CHROME, PORT, PROFILE, WS
 _vp = os.environ.get('LA_VIEWPORT', '1600x1400').split('x')
 VIEWPORT = (int(_vp[0]), int(_vp[1]))
 MOBILE = VIEWPORT[0] < 800
+SCROLL = float(os.environ.get('LA_SCROLL', 0))
+FULLPAGE = os.environ.get('LA_FULLPAGE') not in (None, '', '0')
+MOTION = os.environ.get('LA_MOTION') not in (None, '', '0')
+MAX_HEIGHT = 6000
 
 
 def main():
@@ -69,7 +84,10 @@ def main():
                     return res
 
         def js(expr):
-            r = call('Runtime.evaluate', {'expression': expr, 'returnByValue': True})
+            # awaitPromise lets a probe be async — decoding an image, waiting on
+            # a load event — without changing anything for plain expressions.
+            r = call('Runtime.evaluate', {'expression': expr, 'returnByValue': True,
+                                          'awaitPromise': True})
             det = r.get('result', {}).get('exceptionDetails')
             if det:
                 print('JS-Fehler:', json.dumps(det)[:600])
@@ -80,6 +98,10 @@ def main():
         call('Emulation.setDeviceMetricsOverride',
              {'width': VIEWPORT[0], 'height': VIEWPORT[1],
               'deviceScaleFactor': 1, 'mobile': MOBILE})
+        if MOTION:
+            call('Emulation.setEmulatedMedia',
+                 {'features': [{'name': 'prefers-reduced-motion',
+                                'value': 'no-preference'}]})
         call('Page.navigate', {'url': url})
 
         for _ in range(50):
@@ -125,40 +147,67 @@ def main():
 
         # Lazy loading is viewport-driven, and most jellyfin cards carry their
         # artwork as a CSS background-image — which never appears in
-        # document.images, so counting incomplete <img> misses them entirely and
-        # the capture lands on blurhash placeholders. Walk the page in steps so
-        # every row enters the viewport, then confirm the card backgrounds have
-        # actually resolved to a URL.
-        for frac in (0.0, 0.25, 0.5, 0.75, 1.0, 0.5, 0.0):
-            js(f"window.scrollTo(0, document.body.scrollHeight*{frac}); 1")
-            time.sleep(1.2)
+        # document.images, so counting incomplete <img> misses them entirely.
+        # Walk the page in steps so every row enters the viewport, then confirm
+        # the card backgrounds have actually resolved to a URL. Cards sitting
+        # outside the viewport *horizontally* (the off-screen half of every
+        # "overflow" row) never load no matter how far the page scrolls, so
+        # counting them means waiting out the full timeout on every single run.
+        def settle():
+            for frac in (0.0, 0.25, 0.5, 0.75, 1.0, 0.5, 0.0):
+                js(f"window.scrollTo(0, document.body.scrollHeight*{frac}); 1")
+                time.sleep(1.2)
+            pending = None
+            for _ in range(30):
+                time.sleep(1)
+                pending = js("""(function(){
+                    var imgs=[].slice.call(document.images)
+                        .filter(function(i){return !i.complete;}).length;
+                    var cards=[].slice.call(
+                        document.querySelectorAll('.cardImageContainer,.listItemImage'))
+                        .filter(function(e){
+                            var r=e.getBoundingClientRect();
+                            if(r.right<=0 || r.left>=innerWidth) return false;
+                            return getComputedStyle(e).backgroundImage === 'none';
+                        }).length;
+                    return imgs + cards;
+                })()""")
+                if not pending:
+                    break
+            time.sleep(4)
+            return pending
 
-        for _ in range(30):
-            time.sleep(1)
-            pending = js("""(function(){
-                var imgs=[].slice.call(document.images)
-                    .filter(function(i){return !i.complete;}).length;
-                var cards=[].slice.call(
-                    document.querySelectorAll('.cardImageContainer,.listItemImage'))
-                    .filter(function(e){
-                        return getComputedStyle(e).backgroundImage === 'none';
-                    }).length;
-                return imgs + cards;
-            })()""")
-            if not pending:
-                break
-        time.sleep(4)
-        print('ausstehend beim Ausloesen:', pending)
+        print('ausstehend beim Ausloesen:', settle())
 
-        # Horizontal scrollers (cast, "similar") make scrollWidth several times
-        # the viewport, and captureBeyondViewport grabs all of it — which renders
-        # the real 1600px layout as a narrow column and looks like a layout bug.
-        # Clip to the viewport width explicitly.
-        height = js('Math.min(document.documentElement.scrollHeight, 6000)')
-        shot = call('Page.captureScreenshot', {
-            'format': 'png', 'captureBeyondViewport': True,
-            'clip': {'x': 0, 'y': 0, 'width': VIEWPORT[0],
-                     'height': height or VIEWPORT[1], 'scale': 1}})
+        if FULLPAGE:
+            # captureBeyondViewport does NOT re-paint CSS background images: the
+            # synthetic raster falls back to jellyfin's blurhash canvas, so a
+            # full-page shot came out as placeholder mush while the DOM insisted
+            # every image was loaded. Growing the real viewport is the only way
+            # the artwork below the fold actually paints — at the price of vh
+            # units now resolving against the page height, so hero sizing in a
+            # LA_FULLPAGE shot is NOT to be trusted. Measure those in the
+            # default one-viewport mode.
+            height = min(js('document.documentElement.scrollHeight') or VIEWPORT[1],
+                         MAX_HEIGHT)
+            call('Emulation.setDeviceMetricsOverride',
+                 {'width': VIEWPORT[0], 'height': int(height),
+                  'deviceScaleFactor': 1, 'mobile': MOBILE})
+            time.sleep(2)
+            print('Vollseite: Viewport auf', VIEWPORT[0], 'x', int(height),
+                  '| ausstehend:', settle())
+        elif SCROLL:
+            js('window.scrollTo(0, %s); 1' % (
+                f'document.body.scrollHeight*{SCROLL}' if SCROLL <= 1 else SCROLL))
+            time.sleep(2)
+            settle()
+            print('gescrollt auf y =', js('Math.round(window.scrollY)'))
+
+        # A plain viewport capture. Horizontal scrollers (cast, "similar") make
+        # scrollWidth several times the viewport width, and captureBeyondViewport
+        # would grab all of it — rendering the real layout as a narrow column
+        # that looks exactly like a layout bug.
+        shot = call('Page.captureScreenshot', {'format': 'png'})
         data = shot.get('result', {}).get('data')
         if not data:
             sys.exit('screenshot failed: ' + json.dumps(shot)[:300])

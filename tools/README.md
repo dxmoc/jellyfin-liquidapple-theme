@@ -8,7 +8,21 @@ theme can be judged and measured against the real client instead of a mock.
 `shot.py` disables whatever Custom CSS the server injects and injects
 `dist/liquidapple.css` instead, so nothing on the server has to change. Pass a
 JS file as the 4th argument to print measurements (computed styles, box
-geometry) alongside the screenshot.
+geometry) alongside the screenshot. It may return a Promise.
+
+By default it captures exactly one viewport — what the device actually shows.
+
+| Variable | Effect |
+| --- | --- |
+| `LA_VIEWPORT=430x932` | emulated device viewport (default `1600x1400`). Under 800px wide also sends an iPhone user agent, because `.layout-mobile` comes from the UA, not the window size |
+| `LA_SCROLL=1200` | scroll down before capturing; a value ≤ 1 is read as a fraction of the page |
+| `LA_FULLPAGE=1` | capture the whole page (see the trap below — it distorts `vh`) |
+| `LA_MOTION=1` | emulate `prefers-reduced-motion: no-preference` |
+
+`LA_MOTION` matters more than it looks: Windows animations are off on this
+machine, so `reduce` is permanently on and every spring, entrance and hover
+transition silently falls back. Without this flag the motion work cannot be
+reviewed at all — not in the browser, not here.
 
 ## One-time setup
 
@@ -26,13 +40,28 @@ session under Dashboard -> Devices.
 stdlib-only WebSocket good enough for `Runtime.evaluate`, so there is no
 dependency to install.
 
-## Two traps worth remembering
+## Traps worth remembering
 
-- **`captureBeyondViewport` grabs the full scroll width.** Horizontal rows (cast,
-  "similar") make that several times the viewport, and the real 1600px layout
-  then renders as a narrow column that looks exactly like a broken layout. Always
-  clip to the viewport width.
-- **Lazy images need scrolling and time.** Capturing early shows blurhash
-  placeholders, which look exactly like washed-out artwork. `.blurhash-canvas`
-  stays in the DOM permanently, so it is useless as a ready signal — wait on
-  incomplete `<img>` elements instead.
+- **`captureBeyondViewport` does not paint CSS background images.** This one cost
+  a whole session. Jellyfin cards carry their artwork as a `background-image`,
+  and the synthetic oversized raster falls back to the blurhash canvas sitting
+  behind it — so a full-page shot came out as placeholder mush while the DOM
+  insisted all 14 images were loaded and their canvases hidden. Proof: remove
+  the canvases and the same capture renders bare placeholder icons, not the
+  artwork. A viewport capture of the identical page is sharp. Growing the real
+  viewport is the only way the artwork below the fold paints, which is what
+  `LA_FULLPAGE` does — at the price of `vh` units resolving against the page
+  height. **Never measure hero geometry in a `LA_FULLPAGE` shot.**
+- **It also grabs the full scroll *width*.** Horizontal rows (cast, "similar")
+  make that several times the viewport, so the real 1600px layout renders as a
+  narrow column that looks exactly like a broken layout. Another reason the
+  plain viewport capture is the default.
+- **Lazy images need scrolling and time**, and neither obvious ready signal
+  works. `document.images` is *empty* on the mobile layout — the artwork is all
+  `background-image`. `.blurhash-canvas` stays in the DOM permanently, so its
+  presence means nothing (its `.lazy-hidden` class does: that is jellyfin's own
+  "loaded" marker). Wait on `.cardImageContainer` having a background image.
+- **Cards outside the viewport *horizontally* never load.** Every overflow row
+  keeps most of its cards off to the right, and no amount of vertical scrolling
+  brings them in. Counting them as pending means waiting out the full timeout on
+  every run — the ready check has to skip them.
