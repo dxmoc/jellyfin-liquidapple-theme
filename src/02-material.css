@@ -94,9 +94,9 @@
     border-radius: inherit;
     pointer-events: none;
     -webkit-backdrop-filter: blur(var(--la-refract-blur))
-      brightness(var(--la-refract-bright)) saturate(200%);
+      brightness(var(--la-refract-bright)) saturate(var(--la-refract-sat));
     backdrop-filter: blur(var(--la-refract-blur))
-      brightness(var(--la-refract-bright)) saturate(200%);
+      brightness(var(--la-refract-bright)) saturate(var(--la-refract-sat));
     -webkit-mask: linear-gradient(#000 0 0) content-box,
       linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;

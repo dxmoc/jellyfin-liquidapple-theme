@@ -26,8 +26,10 @@
   --la-blur: 22px;
   --la-blur-thin: 12px;
   --la-blur-thick: 44px;
-  --la-saturate: 180%;
-  --la-brightness: 108%;
+  /* 180% looked right against muted artwork and turned a monochrome-red poster
+     into neon. Colour amplification has to survive already-saturated input. */
+  --la-saturate: 155%;
+  --la-brightness: 104%;
   --la-material: blur(var(--la-blur)) saturate(var(--la-saturate))
     brightness(var(--la-brightness));
   --la-material-thin: blur(var(--la-blur-thin)) saturate(var(--la-saturate));
@@ -46,10 +48,10 @@
   /* --- Rim light -----------------------------------------------------------
      A pane of glass is lit from above and shadowed below. This one composite
      shadow does most of the visual work in the whole theme. */
-  --la-rim: rgba(255, 255, 255, 0.13);
-  --la-rim-top: rgba(255, 255, 255, 0.38);
-  --la-rim-bottom: rgba(0, 0, 0, 0.30);
-  --la-rim-hover: rgba(255, 255, 255, 0.26);
+  --la-rim: rgba(255, 255, 255, 0.11);
+  --la-rim-top: rgba(255, 255, 255, 0.24);
+  --la-rim-bottom: rgba(0, 0, 0, 0.26);
+  --la-rim-hover: rgba(255, 255, 255, 0.24);
   --la-edge:
     inset 0 1px 0 0 var(--la-rim-top),
     inset 0 -1px 0 0 var(--la-rim-bottom),
@@ -64,7 +66,8 @@
      own backdrop-filter. Set --la-refract-blur to 0px to switch it off. */
   --la-refract-blur: 6px;
   --la-refract-width: 7px;
-  --la-refract-bright: 1.4;
+  --la-refract-bright: 1.14;
+  --la-refract-sat: 125%;
 
   /* --- Depth --------------------------------------------------------------- */
   --la-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 8px rgba(0, 0, 0, 0.20);

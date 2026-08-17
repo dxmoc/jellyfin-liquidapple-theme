@@ -4,16 +4,11 @@
    block becomes a pane floating over the backdrop rather than text on a wash.
    ========================================================================== */
 
-.layout-desktop .detailPagePrimaryContainer {
-  margin: 0 var(--la-gutter) 1.4em;
-  padding: 1.6em;
-  border-radius: var(--la-r-2xl);
-  background: var(--la-fill-thick);
-  -webkit-backdrop-filter: var(--la-material);
-  backdrop-filter: var(--la-material);
-  box-shadow: var(--la-edge), var(--la-shadow-lg);
-}
-
+/* NOTE: there was a glass pane on .detailPagePrimaryContainer here. On a real
+   server that container is only the narrow ribbon holding the title and chips —
+   not the whole info block the way preview/index.html modelled it — so the pane
+   rendered as a stray band with the poster hanging out of both ends. Removed
+   until the layout is rebuilt against a real DOM dump rather than a guess. */
 .layout-mobile .detailPagePrimaryContainer {
   padding-inline: 1em;
 }
@@ -101,7 +96,9 @@
   align-items: center;
   gap: 0.4ch;
   height: 3em;
-  min-width: 9.5em;
+  /* Sized to content: jellyfin renders this icon-only in most cases, and a
+     fixed min-width turns it into a wide blank lozenge. */
+  min-width: 0;
   margin: 0 0.6em 0 0 !important;
   padding: 0 1.5em;
   border: none;

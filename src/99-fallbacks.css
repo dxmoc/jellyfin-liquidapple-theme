@@ -64,25 +64,63 @@
   }
 }
 
-/* --- Reduce Motion ------------------------------------------------------ */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+/* --- Reduce Motion ------------------------------------------------------
+   Windows with "Show animations" switched off reports the same thing as macOS
+   Reduce Motion, and plenty of people have that set for reasons that have
+   nothing to do with motion sensitivity — a tuned-for-speed work machine, a
+   remote session, a corporate default.
 
+   So this removes what actually *moves* — scale, slide, parallax — and keeps
+   the sub-200ms colour and opacity transitions that tell you a control noticed
+   you. The usual `* { transition-duration: 0.01ms !important }` snippet takes
+   those out too, and the result does not read as calm, it reads as broken. */
+@media (prefers-reduced-motion: reduce) {
   :root {
     --la-lift: 0px;
   }
 
+  /* Entrances: these slide and scale, so they go. */
+  .dialog:not(.dialog-fullscreen),
+  .toast,
+  .upNextContainer,
+  .manualLoginForm,
+  .visualLoginForm,
+  .backdropImageFadeIn {
+    animation: none !important;
+  }
+
+  /* Every transform-based reaction, flattened. Colour changes stay. */
   .card-hoverable:hover .cardScalable,
   .card-hoverable:hover .visualCardBox,
-  #scenesContent .cardScalable:hover {
-    transform: none;
+  #scenesContent .cardScalable:hover,
+  .card-hoverable .cardScalable:active,
+  .cardOverlayFab-primary:hover,
+  .cardOverlayButton:hover,
+  .listItemImageButton:hover,
+  .cardOverlayFab-primary:active,
+  .cardOverlayButton:active,
+  .sectionTitleTextButton:hover > .material-icons,
+  .sliderContainer:hover .mdl-slider::-webkit-slider-thumb,
+  .sliderContainer:active .mdl-slider::-webkit-slider-thumb,
+  .emby-button:active,
+  .raised:active,
+  .fab:active,
+  .button-alt:active,
+  .emby-tab-button:active,
+  .alphaPickerButton:active,
+  .detailButton:active,
+  .paper-icon-button-light:active:not(:disabled),
+  .listItem:active,
+  .navMenuOption:active,
+  .card:active .cardScalable,
+  .layout-tv .show-focus:focus,
+  .layout-tv .show-animation:focus,
+  .layout-tv .emby-select-focusscale:focus {
+    transform: none !important;
+  }
+
+  * {
+    scroll-behavior: auto !important;
   }
 }
 

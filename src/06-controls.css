@@ -130,6 +130,21 @@
   outline: none;
 }
 
+/* Jellyfin overlays its own chevron in .selectArrowContainer, so the native
+   control's arrow has to go — otherwise both are drawn and the platform one
+   shows up as a bare white box next to the chevron. */
+.emby-select,
+.emby-select-withcolor {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 2.4em !important;
+}
+
+.emby-select::-ms-expand {
+  display: none;
+}
+
 .emby-select-withcolor > option {
   background-color: var(--la-ground-raised);
   color: var(--la-text);

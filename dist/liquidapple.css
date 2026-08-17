@@ -32,8 +32,10 @@
   --la-blur: 22px;
   --la-blur-thin: 12px;
   --la-blur-thick: 44px;
-  --la-saturate: 180%;
-  --la-brightness: 108%;
+  /* 180% looked right against muted artwork and turned a monochrome-red poster
+     into neon. Colour amplification has to survive already-saturated input. */
+  --la-saturate: 155%;
+  --la-brightness: 104%;
   --la-material: blur(var(--la-blur)) saturate(var(--la-saturate))
     brightness(var(--la-brightness));
   --la-material-thin: blur(var(--la-blur-thin)) saturate(var(--la-saturate));
@@ -52,10 +54,10 @@
   /* --- Rim light -----------------------------------------------------------
      A pane of glass is lit from above and shadowed below. This one composite
      shadow does most of the visual work in the whole theme. */
-  --la-rim: rgba(255, 255, 255, 0.13);
-  --la-rim-top: rgba(255, 255, 255, 0.38);
-  --la-rim-bottom: rgba(0, 0, 0, 0.30);
-  --la-rim-hover: rgba(255, 255, 255, 0.26);
+  --la-rim: rgba(255, 255, 255, 0.11);
+  --la-rim-top: rgba(255, 255, 255, 0.24);
+  --la-rim-bottom: rgba(0, 0, 0, 0.26);
+  --la-rim-hover: rgba(255, 255, 255, 0.24);
   --la-edge:
     inset 0 1px 0 0 var(--la-rim-top),
     inset 0 -1px 0 0 var(--la-rim-bottom),
@@ -70,7 +72,8 @@
      own backdrop-filter. Set --la-refract-blur to 0px to switch it off. */
   --la-refract-blur: 6px;
   --la-refract-width: 7px;
-  --la-refract-bright: 1.4;
+  --la-refract-bright: 1.14;
+  --la-refract-sat: 125%;
 
   /* --- Depth --------------------------------------------------------------- */
   --la-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 8px rgba(0, 0, 0, 0.20);
@@ -271,10 +274,13 @@ h1,
   font-weight: 450;
 }
 
+/* Jellyfin marks up card titles, cast names, genres and studios as anchors, so
+   a default underline lands on half the UI — card captions included. Underline
+   is reserved for hovering an actual prose link. */
 a,
 .button-link {
   color: var(--la-text);
-  text-decoration-color: var(--la-text-faint);
+  text-decoration: none;
   text-underline-offset: 0.2em;
   transition: color var(--la-fast) var(--la-ease-out),
     text-decoration-color var(--la-fast) var(--la-ease-out);
@@ -283,7 +289,21 @@ a,
 a:hover,
 .button-link:hover {
   color: #fff;
-  text-decoration-color: currentColor;
+}
+
+/* Inside running text a link does need to look like one. */
+.detailSectionContent a:not(.overview-expand):hover,
+.detailsGroupItem > .content > a:hover,
+.overview a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--la-text-faint);
+}
+
+.cardText a,
+.cardText,
+.listItemBodyText a,
+.sectionTitleTextButton {
+  text-decoration: none !important;
 }
 
 ::selection {
@@ -430,9 +450,9 @@ a:hover,
     border-radius: inherit;
     pointer-events: none;
     -webkit-backdrop-filter: blur(var(--la-refract-blur))
-      brightness(var(--la-refract-bright)) saturate(200%);
+      brightness(var(--la-refract-bright)) saturate(var(--la-refract-sat));
     backdrop-filter: blur(var(--la-refract-blur))
-      brightness(var(--la-refract-bright)) saturate(200%);
+      brightness(var(--la-refract-bright)) saturate(var(--la-refract-sat));
     -webkit-mask: linear-gradient(#000 0 0) content-box,
       linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
@@ -538,12 +558,27 @@ a:hover,
   overflow: hidden;
 }
 
-/* Scrolled to the top with nothing behind it, the header has no reason to
-   assert itself — it thins out to almost nothing. */
+/* Scrolled to the top there is nothing to separate the header from, so it gets
+   out of the way entirely: no fill, no rim, no refraction. A rounded rim drawn
+   around an otherwise invisible bar reads as a stray outlined box floating over
+   the artwork — and over a saturated backdrop it glows in that colour. The
+   glass only appears once the header actually overlaps content. */
 .skinHeader-withBackground.semiTransparent:not(.osdHeader) {
-  --la-fill-chrome: rgba(16, 18, 24, 0.22);
-  --la-blur: 14px;
-  box-shadow: var(--la-edge-soft);
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.skinHeader-withBackground.semiTransparent:not(.osdHeader)::before,
+.skinHeader-withBackground.semiTransparent:not(.osdHeader)::after {
+  display: none;
+}
+
+/* Icons still need to stay readable against bright artwork. */
+.skinHeader-withBackground.semiTransparent:not(.osdHeader) .headerButton,
+.skinHeader-withBackground.semiTransparent:not(.osdHeader) .pageTitle {
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
 }
 
 .headroom--unpinned:not(.osdHeader) {
@@ -972,16 +1007,11 @@ a:hover,
    block becomes a pane floating over the backdrop rather than text on a wash.
    ========================================================================== */
 
-.layout-desktop .detailPagePrimaryContainer {
-  margin: 0 var(--la-gutter) 1.4em;
-  padding: 1.6em;
-  border-radius: var(--la-r-2xl);
-  background: var(--la-fill-thick);
-  -webkit-backdrop-filter: var(--la-material);
-  backdrop-filter: var(--la-material);
-  box-shadow: var(--la-edge), var(--la-shadow-lg);
-}
-
+/* NOTE: there was a glass pane on .detailPagePrimaryContainer here. On a real
+   server that container is only the narrow ribbon holding the title and chips —
+   not the whole info block the way preview/index.html modelled it — so the pane
+   rendered as a stray band with the poster hanging out of both ends. Removed
+   until the layout is rebuilt against a real DOM dump rather than a guess. */
 .layout-mobile .detailPagePrimaryContainer {
   padding-inline: 1em;
 }
@@ -1069,7 +1099,9 @@ a:hover,
   align-items: center;
   gap: 0.4ch;
   height: 3em;
-  min-width: 9.5em;
+  /* Sized to content: jellyfin renders this icon-only in most cases, and a
+     fixed min-width turns it into a wide blank lozenge. */
+  min-width: 0;
   margin: 0 0.6em 0 0 !important;
   padding: 0 1.5em;
   border: none;
@@ -1366,6 +1398,21 @@ a:hover,
     inset 0 0 0 1px rgba(255, 255, 255, 0.4),
     0 0 0 3px var(--la-accent-glow);
   outline: none;
+}
+
+/* Jellyfin overlays its own chevron in .selectArrowContainer, so the native
+   control's arrow has to go — otherwise both are drawn and the platform one
+   shows up as a bare white box next to the chevron. */
+.emby-select,
+.emby-select-withcolor {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 2.4em !important;
+}
+
+.emby-select::-ms-expand {
+  display: none;
 }
 
 .emby-select-withcolor > option {
@@ -2334,25 +2381,63 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
   }
 }
 
-/* --- Reduce Motion ------------------------------------------------------ */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+/* --- Reduce Motion ------------------------------------------------------
+   Windows with "Show animations" switched off reports the same thing as macOS
+   Reduce Motion, and plenty of people have that set for reasons that have
+   nothing to do with motion sensitivity — a tuned-for-speed work machine, a
+   remote session, a corporate default.
 
+   So this removes what actually *moves* — scale, slide, parallax — and keeps
+   the sub-200ms colour and opacity transitions that tell you a control noticed
+   you. The usual `* { transition-duration: 0.01ms !important }` snippet takes
+   those out too, and the result does not read as calm, it reads as broken. */
+@media (prefers-reduced-motion: reduce) {
   :root {
     --la-lift: 0px;
   }
 
+  /* Entrances: these slide and scale, so they go. */
+  .dialog:not(.dialog-fullscreen),
+  .toast,
+  .upNextContainer,
+  .manualLoginForm,
+  .visualLoginForm,
+  .backdropImageFadeIn {
+    animation: none !important;
+  }
+
+  /* Every transform-based reaction, flattened. Colour changes stay. */
   .card-hoverable:hover .cardScalable,
   .card-hoverable:hover .visualCardBox,
-  #scenesContent .cardScalable:hover {
-    transform: none;
+  #scenesContent .cardScalable:hover,
+  .card-hoverable .cardScalable:active,
+  .cardOverlayFab-primary:hover,
+  .cardOverlayButton:hover,
+  .listItemImageButton:hover,
+  .cardOverlayFab-primary:active,
+  .cardOverlayButton:active,
+  .sectionTitleTextButton:hover > .material-icons,
+  .sliderContainer:hover .mdl-slider::-webkit-slider-thumb,
+  .sliderContainer:active .mdl-slider::-webkit-slider-thumb,
+  .emby-button:active,
+  .raised:active,
+  .fab:active,
+  .button-alt:active,
+  .emby-tab-button:active,
+  .alphaPickerButton:active,
+  .detailButton:active,
+  .paper-icon-button-light:active:not(:disabled),
+  .listItem:active,
+  .navMenuOption:active,
+  .card:active .cardScalable,
+  .layout-tv .show-focus:focus,
+  .layout-tv .show-animation:focus,
+  .layout-tv .emby-select-focusscale:focus {
+    transform: none !important;
+  }
+
+  * {
+    scroll-behavior: auto !important;
   }
 }
 

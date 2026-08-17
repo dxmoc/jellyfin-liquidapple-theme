@@ -28,12 +28,27 @@
   overflow: hidden;
 }
 
-/* Scrolled to the top with nothing behind it, the header has no reason to
-   assert itself — it thins out to almost nothing. */
+/* Scrolled to the top there is nothing to separate the header from, so it gets
+   out of the way entirely: no fill, no rim, no refraction. A rounded rim drawn
+   around an otherwise invisible bar reads as a stray outlined box floating over
+   the artwork — and over a saturated backdrop it glows in that colour. The
+   glass only appears once the header actually overlaps content. */
 .skinHeader-withBackground.semiTransparent:not(.osdHeader) {
-  --la-fill-chrome: rgba(16, 18, 24, 0.22);
-  --la-blur: 14px;
-  box-shadow: var(--la-edge-soft);
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.skinHeader-withBackground.semiTransparent:not(.osdHeader)::before,
+.skinHeader-withBackground.semiTransparent:not(.osdHeader)::after {
+  display: none;
+}
+
+/* Icons still need to stay readable against bright artwork. */
+.skinHeader-withBackground.semiTransparent:not(.osdHeader) .headerButton,
+.skinHeader-withBackground.semiTransparent:not(.osdHeader) .pageTitle {
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
 }
 
 .headroom--unpinned:not(.osdHeader) {
