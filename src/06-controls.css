@@ -380,6 +380,16 @@ progress,
   padding: 0.4em 0.2em;
 }
 
+/* Turning the picker into a pill made it 30px wide where jellyfin's bare one is
+   20px, and .padded-right-withalphapicker reserves a percentage sized for the
+   bare one — 32px at 430px viewport. The last grid column ended up 3px *under*
+   the fixed picker. Reserve the pill's real width as a floor instead; the
+   percentage still wins on desktop, where it is far larger. */
+.itemsContainer.padded-right-withalphapicker {
+  padding-right: 7.5%; /* jellyfin's own value, for browsers without max() */
+  padding-right: max(7.5%, var(--la-alphapicker-clear));
+}
+
 .alphaPickerButton {
   min-width: 1.9em;
   height: 1.9em;
