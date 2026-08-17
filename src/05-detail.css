@@ -22,12 +22,9 @@
   position: relative;
   z-index: 1;
   min-height: var(--la-hero-min);
-  background: linear-gradient(
-    180deg,
-    transparent var(--la-hero-scrim-start),
-    var(--la-hero-scrim) var(--la-hero-scrim-mid),
-    var(--la-hero-scrim) 100%
-  );
+  /* No scrim here — .itemBackdrop::after owns it now and lines up with the
+     artwork. A second gradient on this box only double-darkens the text. */
+  background: transparent;
 }
 
 .detailPagePrimaryContainer,
@@ -202,8 +199,6 @@
   align-items: center;
   gap: 0.4ch;
   height: 3em;
-  /* Sized to content: jellyfin renders this icon-only in most cases, and a
-     fixed min-width turns it into a wide blank lozenge. */
   min-width: 0;
   margin: 0 0.6em 0 0 !important;
   padding: 0 1.5em;
@@ -238,6 +233,16 @@
   flex-direction: row;
   align-items: center;
   gap: 0.4ch;
+}
+
+/* Jellyfin ships this button with no text node at all — the label lives only in
+   title="…", already localised by the server. Pulling it out with attr() gives a
+   real primary action instead of a bare icon, in the user's own language. */
+.btnPlay.detailButton::after {
+  content: attr(title);
+  font-weight: 650;
+  letter-spacing: var(--la-tracking-tight);
+  white-space: nowrap;
 }
 
 .detailButton:not(.btnPlay) {

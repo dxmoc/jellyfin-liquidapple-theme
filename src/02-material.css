@@ -44,7 +44,6 @@
 .emby-textarea,
 .emby-select,
 .emby-select-withcolor,
-.selectContainer .selectArrowContainer,
 .itemExternalLinks.focuscontainer-x > .button-link,
 .itemTags > a,
 .mediaInfoItem,
@@ -84,7 +83,6 @@
   .actionSheetContent::after,
   .toast::after,
   .upNextContainer::after,
-  .btnPlay.detailButton::after,
   .sectionTabs .emby-tabs::after {
     content: "";
     position: absolute;
@@ -105,7 +103,6 @@
   }
 
   .actionSheetContent,
-  .btnPlay.detailButton,
   .sectionTabs .emby-tabs,
   .toast {
     position: relative;

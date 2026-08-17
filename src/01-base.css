@@ -19,9 +19,41 @@ html {
 
 body,
 .backdropContainer,
-.mainAnimatedPages,
-.backgroundContainer.withBackdrop {
+.mainAnimatedPages {
   background-color: transparent;
+}
+
+/* The scale below makes .backdropImage 4% taller than this container, and
+   jellyfin's `contain: layout style size` does not include paint — so without
+   clipping, that overhang shows up as a hard bright stripe just past the fold,
+   below where the veil ends. */
+.backdropContainer {
+  overflow: hidden;
+}
+
+/* This is where the backdrop veil belongs, and it took a stacking dump to see
+   why: .backdropContainer is fixed at 100vh, and .backgroundContainer is fixed
+   directly on top of it. Only these two share a coordinate system, so a gradient
+   here lines up with the artwork no matter how far the page is scrolled — which
+   an in-flow element like #itemBackdrop can never do.
+
+   Jellyfin's own rule is a flat rgba(0,0,0,0.86) over the whole thing, which
+   buries the artwork. Replacing it with a ramp keeps the hero clear at the top
+   and still puts solid ground under the content further down.
+
+   !important because this is the same specificity as jellyfin's, so the winner
+   would otherwise depend on where the Custom CSS lands in the document — not
+   something we control, and it has already differed between setups. */
+.backgroundContainer.withBackdrop {
+  background-color: transparent !important;
+  background-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent var(--la-hero-scrim-start),
+    var(--la-hero-scrim-mid) 66%,
+    var(--la-hero-scrim) 84%,
+    var(--la-ground) 96%
+  ) !important;
 }
 
 .backgroundContainer:not(.withBackdrop) {
@@ -82,8 +114,8 @@ body {
    tonal lever for the hero therefore lives here, not on .itemBackdrop. */
 body:has(#itemDetailPage:not(.hide)) .backdropImage {
   filter: saturate(112%) brightness(1);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 64%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 64%, transparent 100%);
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 /* Haze over the hero artwork; the image supplies the colour here. */
@@ -98,12 +130,18 @@ body:has(#itemDetailPage:not(.hide)) .backgroundContainer.withBackdrop {
   animation: la-backdrop-in var(--la-slow) var(--la-ease) both;
 }
 
-/* Pure spacer: it holds no image, so it only sets how much room the hero gets
-   before content starts. Filters and masks here would do nothing. */
+/* Pure spacer: it holds no image of its own, so it only sets how much room the
+   hero gets. What it is good for is carrying the scrim — it is full width and
+   exactly as tall as the artwork, so a gradient here lines up with the image
+   perfectly. Putting the scrim on the content wrapper instead ramps relative to
+   *that* box, which starts below the picture: the result was a bright image cut
+   off by an abrupt dark band. */
 .itemBackdrop {
   display: block !important;
+  position: relative;
   background: none;
 }
+
 
 .layout-desktop .itemBackdrop {
   height: var(--la-hero-height);

@@ -129,20 +129,25 @@
      block sits at the bottom of it behind a scrim. The geometry follows
      ElegantFin's, which is proven against jellyfin's own layout.
 
-     --la-hero-align is `start` because that is how Apple lays out a hero (the
-     TV app included). Set it to `center` for ElegantFin's centred variant.
+     --la-hero-align centres the title, chips and buttons. Body copy below stays
+     left-aligned either way. Set it to `start` for a left-aligned hero.
      --la-detail-poster is `none` because a poster and a full-bleed backdrop
      fight over the same space; set it to `block` to bring the poster back. */
   --la-hero-height: 72vh;
   --la-hero-min: 46vh;
   --la-hero-ribbon-min: 25vh;
-  --la-hero-scrim-start: 15vh;
-  --la-hero-scrim-mid: 46vh;
+  /* The veil that blends the artwork into the page, drawn on
+     .backgroundContainer.withBackdrop — the only element that shares a
+     coordinate system with the fixed backdrop. Percentages are of the viewport.
+     Above --la-hero-scrim-start the artwork is untouched: push it down to keep
+     more of the image, pull it up if titles are hard to read. */
+  --la-hero-scrim-start: 42%;
+  --la-hero-scrim-mid: rgba(6, 7, 10, 0.34);
   --la-hero-scrim: rgba(6, 7, 10, 0.80);
   /* How far the info block rides up onto the artwork. 0 leaves image and text
      as separate bands, which reads as a gap rather than a hero. */
-  --la-hero-overlap: 19vh;
-  --la-hero-align: start;
+  --la-hero-overlap: 14vh;
+  --la-hero-align: center;
   --la-detail-poster: none;
   --la-detail-logo: none;
   /* Shared left edge for hero text, body copy and the section rows. Raise to

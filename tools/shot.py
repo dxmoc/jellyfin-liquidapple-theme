@@ -98,7 +98,11 @@ def main():
             call('Runtime.evaluate', {'expression':
                  'var s=document.createElement("style");'
                  's.id="la-local";s.textContent=' + json.dumps(css) + ';'
-                 'document.head.appendChild(s);"ok"', 'returnByValue': True})
+                 # Jellyfin links themes/dark/theme.css from inside <body> and
+                 # injects Custom CSS there too, so a <style> in <head> loses
+                 # every equal-specificity tie. Appending to body reproduces the
+                 # real cascade position instead of a stricter one.
+                 'document.body.appendChild(s);"ok"', 'returnByValue': True})
             time.sleep(2.5)
             print('injiziert:', js("document.getElementById('la-local')?'ja':'nein'"),
                   '| tokens sichtbar:',

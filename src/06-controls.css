@@ -133,6 +133,16 @@
 /* Jellyfin overlays its own chevron in .selectArrowContainer, so the native
    control's arrow has to go — otherwise both are drawn and the platform one
    shows up as a bare white box next to the chevron. */
+select.emby-select,
+select.emby-select-withcolor,
+.emby-select.emby-select-withcolor {
+  background-color: var(--la-fill-sunken) !important;
+  border: none !important;
+  border-radius: var(--la-r-md);
+  color: var(--la-text);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.32), inset 0 0 0 1px var(--la-rim);
+}
+
 .emby-select,
 .emby-select-withcolor,
 select {
@@ -143,9 +153,18 @@ select {
   padding-right: 2.6em !important;
 }
 
-/* Jellyfin's own chevron overlay: keep it visible and out of the way of the
-   click target, now that the platform arrow underneath is gone. */
-.selectArrowContainer {
+/* Jellyfin's own chevron overlay. It is an absolutely positioned 21px box on top
+   of the field, so it must stay completely bare — any fill or rim reads as a
+   stray chip glued to the select. */
+.selectArrowContainer,
+.selectContainer .selectArrowContainer,
+.trackSelectionFieldContainer > .selectArrowContainer {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
   display: flex;
   align-items: center;
   color: var(--la-text-dim);
