@@ -39,7 +39,7 @@
   -webkit-backdrop-filter: var(--la-material-thick);
   backdrop-filter: var(--la-material-thick);
   box-shadow: var(--la-edge), var(--la-shadow-lg);
-  animation: la-sheet-in var(--la-slow) var(--la-ease) both;
+  animation: la-sheet-in var(--la-spring-sheet-t) var(--la-spring-sheet) both;
 }
 
 .visualLoginForm {

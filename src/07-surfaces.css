@@ -14,7 +14,7 @@
   border-radius: var(--la-r-2xl);
   box-shadow: var(--la-edge), var(--la-shadow-lg);
   overflow: hidden;
-  animation: la-sheet-in var(--la-normal) var(--la-ease) both;
+  animation: la-sheet-in var(--la-spring-sheet-t) var(--la-spring-sheet) both;
 }
 
 @keyframes la-sheet-in {
@@ -123,7 +123,7 @@
   border-radius: var(--la-r-xl);
   box-shadow: var(--la-edge), var(--la-shadow-lg);
   padding: 0.9em 1.3em;
-  animation: la-sheet-in var(--la-normal) var(--la-ease) both;
+  animation: la-sheet-in var(--la-spring-sheet-t) var(--la-spring-sheet) both;
 }
 
 .skip-button {

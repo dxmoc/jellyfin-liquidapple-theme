@@ -119,10 +119,27 @@
   --la-normal: 280ms;
   --la-slow: 440ms;
 
+  /* A bezier can only ease, never overshoot — so a card that "pops" and a sheet
+     that settles need a real damped spring. These are the SwiftUI spring model
+     (the one anime.js exposes as its spring easing) sampled into linear(),
+     retuned from its 1.3s settle to something a UI can use: --la-spring is
+     zeta 0.52 / omega 26, --la-spring-sheet is the calmer zeta 0.72 / omega 20.
+     The durations are the settle times and belong to the curves — changing one
+     without the other breaks the physics. Bezier values here are the fallback;
+     the @supports block below swaps in the springs where linear() exists. */
+  --la-spring: var(--la-ease);
+  --la-spring-sheet: var(--la-ease);
+  --la-spring-t: var(--la-normal);
+  --la-spring-sheet-t: var(--la-normal);
+
   /* --- Layout ------------------------------------------------------------- */
   --la-header-h: 4.2em;
   --la-gutter: 1.6em;
   --la-lift: -4px; /* how far a hovered card rises */
+  /* Room the item grid has to keep clear for the alpha picker. The glass pill
+     is wider than jellyfin's bare picker, and jellyfin's own reservation is a
+     percentage — too little on a phone. See 06-controls.css. */
+  --la-alphapicker-clear: 46px;
 
   /* --- Detail hero --------------------------------------------------------
      The item page is a hero: artwork takes most of the viewport and the info
@@ -153,4 +170,26 @@
   /* Shared left edge for hero text, body copy and the section rows. Raise to
      ~33vw together with --la-detail-poster: block. */
   --la-hero-inset: var(--la-gutter);
+}
+
+/* linear() is what makes a spring expressible in CSS at all. Old TV webviews do
+   not have it, and an unsupported timing function would invalidate the whole
+   transition — so the springs are an upgrade on top of the beziers above, never
+   the base. Curves are sampled at 24 points; that is dense enough that the
+   overshoot reads as motion rather than as steps. */
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --la-spring: linear(
+      0, 0.1237, 0.3913, 0.6795, 0.9142, 1.0659, 1.1364, 1.1454, 1.1176, 1.0754,
+      1.0346, 1.0038, 0.9856, 0.9786, 0.9795, 0.9846, 0.991, 0.9966, 1.0005,
+      1.0026, 1.0032, 1.0028, 1.002, 1
+    );
+    --la-spring-sheet: linear(
+      0, 0.0775, 0.248, 0.4441, 0.6264, 0.7757, 0.8866, 0.9615, 1.0068, 1.0299,
+      1.038, 1.037, 1.0313, 1.0238, 1.0165, 1.0103, 1.0056, 1.0023, 1.0002,
+      0.9991, 0.9986, 0.9985, 0.9987, 1
+    );
+    --la-spring-t: 480ms;
+    --la-spring-sheet-t: 500ms;
+  }
 }

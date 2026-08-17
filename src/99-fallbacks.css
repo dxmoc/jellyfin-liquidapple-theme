@@ -77,6 +77,12 @@
 @media (prefers-reduced-motion: reduce) {
   :root {
     --la-lift: 0px;
+    /* Overshoot is exactly the thing reduce is asking us not to do. Back to a
+       plain ease — the transitions still run, they just no longer bounce. */
+    --la-spring: var(--la-ease-out);
+    --la-spring-sheet: var(--la-ease-out);
+    --la-spring-t: var(--la-fast);
+    --la-spring-sheet-t: var(--la-fast);
   }
 
   /* Entrances: these slide and scale, so they are collapsed to nothing the eye

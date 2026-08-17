@@ -18,8 +18,10 @@
   border-radius: var(--la-r-lg);
   overflow: hidden !important;
   box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
+  /* The lift springs; the shadow does not — a bouncing shadow reads as a bug,
+     and it has to keep up with the card rather than trail it. */
   transition:
-    transform var(--la-normal) var(--la-ease),
+    transform var(--la-spring-t) var(--la-spring),
     box-shadow var(--la-normal) var(--la-ease);
   will-change: transform;
 }
