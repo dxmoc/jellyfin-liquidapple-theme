@@ -139,6 +139,13 @@
   --la-hero-scrim-start: 15vh;
   --la-hero-scrim-mid: 46vh;
   --la-hero-scrim: rgba(6, 7, 10, 0.80);
+  /* How far the info block rides up onto the artwork. 0 leaves image and text
+     as separate bands, which reads as a gap rather than a hero. */
+  --la-hero-overlap: 19vh;
   --la-hero-align: start;
   --la-detail-poster: none;
+  --la-detail-logo: none;
+  /* Shared left edge for hero text, body copy and the section rows. Raise to
+     ~33vw together with --la-detail-poster: block. */
+  --la-hero-inset: var(--la-gutter);
 }

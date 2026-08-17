@@ -34,6 +34,13 @@
   color: var(--la-text-faint);
 }
 
+/* Jellyfin picks a saturated colour per person for image-less cards
+   (.defaultCardBackground1..N), which reads as loud blue blobs in a cast row.
+   Neutralised — the icon alone is enough of a placeholder. */
+[class*="defaultCardBackground"] {
+  background-color: var(--la-ground-raised) !important;
+}
+
 /* --- Hover ---------------------------------------------------------------
    Rise, grow a touch, and pick up more rim light — as if the card came closer
    to the light source. */

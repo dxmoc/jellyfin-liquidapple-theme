@@ -15,6 +15,12 @@
 
 .layout-desktop .detailPageWrapperContainer,
 .layout-tv .detailPageWrapperContainer {
+  /* Ride up onto the bottom of the artwork so the two read as one hero instead
+     of an image with a black band under it. The scrim below starts transparent
+     at exactly this overlap, so the text stays legible over the image. */
+  margin-top: calc(-1 * var(--la-hero-overlap));
+  position: relative;
+  z-index: 1;
   min-height: var(--la-hero-min);
   background: linear-gradient(
     180deg,
@@ -47,9 +53,38 @@
   padding-inline: var(--la-gutter);
 }
 
+/* Jellyfin makes this a centring grid, which leaves the title block floating in
+   the middle of its box and opens a gap between the chips and the buttons below.
+   A bottom-packed column removes the gap and honours --la-hero-align. */
 .infoWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   align-items: var(--la-hero-align);
   text-align: var(--la-hero-align);
+  padding-left: 0;
+}
+
+.layout-desktop .detailRibbon,
+.layout-tv .detailRibbon {
+  gap: 0.5em;
+}
+
+/* Jellyfin reserves a poster column by putting a ~32vw padding-left on
+   .detailRibbon and .detailPageContent. With --la-detail-poster off that column
+   is empty, and overriding it on only some of the containers is what left the
+   hero text and the body copy on two different left edges. All three now share
+   --la-hero-inset. Re-enabling the poster means raising this to about 33vw. */
+.layout-desktop .detailRibbon,
+.layout-desktop .detailPageContent,
+.layout-desktop .detailPagePrimaryContent,
+.layout-tv .detailRibbon,
+.layout-tv .detailPageContent {
+  padding-left: var(--la-hero-inset) !important;
+}
+
+.mainDetailButtons {
+  justify-content: var(--la-hero-align);
 }
 
 .detailPagePrimaryContainer > .detailPagePrimaryContent {
@@ -90,7 +125,13 @@
   box-shadow: var(--la-edge-soft), var(--la-shadow-lg);
 }
 
+/* Jellyfin parks the clear logo in the middle of the artwork, where it collides
+   with whatever the image has going on there. Since the theme keeps the text
+   title (reliable — a logo that fails to load must not leave the page nameless),
+   the logo would be a second title anyway, so it is off by default.
+   Set --la-detail-logo to `block` for the logo-instead-of-title look. */
 .detailLogo {
+  display: var(--la-detail-logo);
   filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.7));
 }
 
@@ -130,10 +171,10 @@
 .mediaInfoItem {
   padding: 0.28em 0.72em;
   border-radius: var(--la-r-pill);
-  font-size: 0.86em;
+  font-size: 0.92em;
   font-weight: 550;
   letter-spacing: 0;
-  color: var(--la-text-dim);
+  color: var(--la-text);
 }
 
 .mediaInfoOfficialRating {

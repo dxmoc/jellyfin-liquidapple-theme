@@ -145,8 +145,15 @@
   --la-hero-scrim-start: 15vh;
   --la-hero-scrim-mid: 46vh;
   --la-hero-scrim: rgba(6, 7, 10, 0.80);
+  /* How far the info block rides up onto the artwork. 0 leaves image and text
+     as separate bands, which reads as a gap rather than a hero. */
+  --la-hero-overlap: 19vh;
   --la-hero-align: start;
   --la-detail-poster: none;
+  --la-detail-logo: none;
+  /* Shared left edge for hero text, body copy and the section rows. Raise to
+     ~33vw together with --la-detail-poster: block. */
+  --la-hero-inset: var(--la-gutter);
 }
 
 /* ==== 01-base.css ==== */
@@ -217,15 +224,30 @@ body {
 }
 
 /* --- Backdrop artwork ------------------------------------------------------
-   Softened and pushed back a little: full-contrast artwork behind translucent
-   chrome turns into noise, and the blur gives the glass something smooth to
-   refract. Masked at the bottom so content scrolls out of the image rather
-   than over a hard edge. */
+   Softened a little so translucent chrome over it does not turn into noise, but
+   only a little: measured against the live client, brightness(0.72) plus a 2px
+   blur and an early mask fade left the artwork as dark mush. */
 .backdropImage {
-  filter: saturate(122%) brightness(0.72) blur(2px);
+  filter: saturate(118%) brightness(0.86);
   transform: scale(1.04);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 88%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 88%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 52%, transparent 96%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 52%, transparent 96%);
+}
+
+/* On an item page this *is* the hero, so it keeps more of its height and its
+   brightness. Worth knowing: #itemBackdrop carries no image and has no children
+   (verified against the live client) — it is an empty spacer that sets the hero
+   height, and the artwork you see is this element showing through it. Every
+   tonal lever for the hero therefore lives here, not on .itemBackdrop. */
+body:has(#itemDetailPage:not(.hide)) .backdropImage {
+  filter: saturate(112%) brightness(1);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 64%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 64%, transparent 100%);
+}
+
+/* Haze over the hero artwork; the image supplies the colour here. */
+body:has(#itemDetailPage:not(.hide)) .backgroundContainer.withBackdrop {
+  --la-mesh-opacity: 0;
 }
 
 /* Substituted for jellyfin's own backdrop-fadein, which this class carries.
@@ -235,19 +257,11 @@ body {
   animation: la-backdrop-in var(--la-slow) var(--la-ease) both;
 }
 
-/* The detail page carries a *second* backdrop: #itemBackdrop, inside the page
-   itself (the page gets .selfBackdropPage). .backdropImage above only covers
-   the global one, so styling that alone leaves detail-page artwork at full
-   strength — and every glass surface layered over it then amplifies exactly
-   that. Same treatment, slightly darker, since content sits directly on it. */
-/* Given the full hero height, the fade has to run across most of the element
-   rather than the top third, otherwise the image ends in a hard horizontal
-   line partway down the page. */
+/* Pure spacer: it holds no image, so it only sets how much room the hero gets
+   before content starts. Filters and masks here would do nothing. */
 .itemBackdrop {
   display: block !important;
-  filter: saturate(112%) brightness(0.66);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 52%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 52%, transparent 100%);
+  background: none;
 }
 
 .layout-desktop .itemBackdrop {
@@ -872,6 +886,13 @@ a:hover,
   color: var(--la-text-faint);
 }
 
+/* Jellyfin picks a saturated colour per person for image-less cards
+   (.defaultCardBackground1..N), which reads as loud blue blobs in a cast row.
+   Neutralised — the icon alone is enough of a placeholder. */
+[class*="defaultCardBackground"] {
+  background-color: var(--la-ground-raised) !important;
+}
+
 /* --- Hover ---------------------------------------------------------------
    Rise, grow a touch, and pick up more rim light — as if the card came closer
    to the light source. */
@@ -1080,6 +1101,12 @@ a:hover,
 
 .layout-desktop .detailPageWrapperContainer,
 .layout-tv .detailPageWrapperContainer {
+  /* Ride up onto the bottom of the artwork so the two read as one hero instead
+     of an image with a black band under it. The scrim below starts transparent
+     at exactly this overlap, so the text stays legible over the image. */
+  margin-top: calc(-1 * var(--la-hero-overlap));
+  position: relative;
+  z-index: 1;
   min-height: var(--la-hero-min);
   background: linear-gradient(
     180deg,
@@ -1112,9 +1139,38 @@ a:hover,
   padding-inline: var(--la-gutter);
 }
 
+/* Jellyfin makes this a centring grid, which leaves the title block floating in
+   the middle of its box and opens a gap between the chips and the buttons below.
+   A bottom-packed column removes the gap and honours --la-hero-align. */
 .infoWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   align-items: var(--la-hero-align);
   text-align: var(--la-hero-align);
+  padding-left: 0;
+}
+
+.layout-desktop .detailRibbon,
+.layout-tv .detailRibbon {
+  gap: 0.5em;
+}
+
+/* Jellyfin reserves a poster column by putting a ~32vw padding-left on
+   .detailRibbon and .detailPageContent. With --la-detail-poster off that column
+   is empty, and overriding it on only some of the containers is what left the
+   hero text and the body copy on two different left edges. All three now share
+   --la-hero-inset. Re-enabling the poster means raising this to about 33vw. */
+.layout-desktop .detailRibbon,
+.layout-desktop .detailPageContent,
+.layout-desktop .detailPagePrimaryContent,
+.layout-tv .detailRibbon,
+.layout-tv .detailPageContent {
+  padding-left: var(--la-hero-inset) !important;
+}
+
+.mainDetailButtons {
+  justify-content: var(--la-hero-align);
 }
 
 .detailPagePrimaryContainer > .detailPagePrimaryContent {
@@ -1155,7 +1211,13 @@ a:hover,
   box-shadow: var(--la-edge-soft), var(--la-shadow-lg);
 }
 
+/* Jellyfin parks the clear logo in the middle of the artwork, where it collides
+   with whatever the image has going on there. Since the theme keeps the text
+   title (reliable — a logo that fails to load must not leave the page nameless),
+   the logo would be a second title anyway, so it is off by default.
+   Set --la-detail-logo to `block` for the logo-instead-of-title look. */
 .detailLogo {
+  display: var(--la-detail-logo);
   filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.7));
 }
 
@@ -1195,10 +1257,10 @@ a:hover,
 .mediaInfoItem {
   padding: 0.28em 0.72em;
   border-radius: var(--la-r-pill);
-  font-size: 0.86em;
+  font-size: 0.92em;
   font-weight: 550;
   letter-spacing: 0;
-  color: var(--la-text-dim);
+  color: var(--la-text);
 }
 
 .mediaInfoOfficialRating {
@@ -2548,14 +2610,23 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     --la-lift: 0px;
   }
 
-  /* Entrances: these slide and scale, so they go. */
+  /* Entrances: these slide and scale, so they are collapsed to nothing the eye
+     can follow — but they must still *run*. jellyfin hangs cleanup on
+     animationend (see backdrop.js, which waits for whichAnimationEvent before
+     calling internalBackdrop, and the lazy-image fade that removes the blurhash
+     placeholder). `animation: none` means the event never fires, the placeholder
+     is never removed, and every poster and cast photo keeps a milky pane on top
+     of it. A 1ms duration is instant and still completes. */
   .dialog:not(.dialog-fullscreen),
   .toast,
   .upNextContainer,
   .manualLoginForm,
   .visualLoginForm,
-  .backdropImageFadeIn {
-    animation: none !important;
+  .backdropImageFadeIn,
+  [class*="lazy-image-fadein"] {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
   }
 
   /* Every transform-based reaction, flattened. Colour changes stay. */

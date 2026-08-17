@@ -79,14 +79,23 @@
     --la-lift: 0px;
   }
 
-  /* Entrances: these slide and scale, so they go. */
+  /* Entrances: these slide and scale, so they are collapsed to nothing the eye
+     can follow — but they must still *run*. jellyfin hangs cleanup on
+     animationend (see backdrop.js, which waits for whichAnimationEvent before
+     calling internalBackdrop, and the lazy-image fade that removes the blurhash
+     placeholder). `animation: none` means the event never fires, the placeholder
+     is never removed, and every poster and cast photo keeps a milky pane on top
+     of it. A 1ms duration is instant and still completes. */
   .dialog:not(.dialog-fullscreen),
   .toast,
   .upNextContainer,
   .manualLoginForm,
   .visualLoginForm,
-  .backdropImageFadeIn {
-    animation: none !important;
+  .backdropImageFadeIn,
+  [class*="lazy-image-fadein"] {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
   }
 
   /* Every transform-based reaction, flattened. Colour changes stay. */
