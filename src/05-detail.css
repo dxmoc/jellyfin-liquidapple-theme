@@ -4,22 +4,83 @@
    block becomes a pane floating over the backdrop rather than text on a wash.
    ========================================================================== */
 
-/* NOTE: there was a glass pane on .detailPagePrimaryContainer here. On a real
-   server that container is only the narrow ribbon holding the title and chips —
-   not the whole info block the way preview/index.html modelled it — so the pane
-   rendered as a stray band with the poster hanging out of both ends. Removed
-   until the layout is rebuilt against a real DOM dump rather than a guess. */
-.layout-mobile .detailPagePrimaryContainer {
+/* --- Hero ----------------------------------------------------------------
+   The artwork gets the viewport and the info block sits at the bottom of it,
+   over a scrim. Both containers have to give up their own backgrounds and
+   padding first, or jellyfin's defaults reintroduce the band this replaces. */
+.detailPageWrapperContainer {
+  margin-top: unset;
+  padding-top: unset;
+}
+
+.layout-desktop .detailPageWrapperContainer,
+.layout-tv .detailPageWrapperContainer {
+  min-height: var(--la-hero-min);
+  background: linear-gradient(
+    180deg,
+    transparent var(--la-hero-scrim-start),
+    var(--la-hero-scrim) var(--la-hero-scrim-mid),
+    var(--la-hero-scrim) 100%
+  );
+}
+
+.detailPagePrimaryContainer,
+.layout-desktop .detailPagePrimaryContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  background: transparent;
+  padding: 0;
+}
+
+.layout-desktop .detailRibbon,
+.layout-tv .detailRibbon {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: var(--la-hero-align);
+  text-align: var(--la-hero-align);
+  min-height: var(--la-hero-ribbon-min);
+  height: 100%;
+  background-color: transparent;
+  padding-inline: var(--la-gutter);
+}
+
+.infoWrapper {
+  align-items: var(--la-hero-align);
+  text-align: var(--la-hero-align);
+}
+
+.detailPagePrimaryContainer > .detailPagePrimaryContent {
+  padding-top: 0;
+  padding-inline: var(--la-gutter);
+}
+
+.layout-mobile .detailPagePrimaryContainer,
+.layout-mobile .detailPagePrimaryContent {
   padding-inline: 1em;
 }
 
 .detailPageSecondaryContainer {
   background: transparent;
   border: none;
-  padding-top: 0.5em;
+  padding-top: 0;
 }
 
-/* --- Poster / logo ------------------------------------------------------- */
+/* --- Poster / logo -------------------------------------------------------
+   On desktop the hero artwork already carries the item, so the poster is off
+   by default — the two of them competing for the same band is what made the
+   first attempt look cluttered. --la-detail-poster brings it back. */
+.layout-desktop .detailImageContainer .card {
+  display: var(--la-detail-poster);
+  margin: auto auto 0;
+  width: 22vh !important;
+  float: none;
+  position: relative !important;
+  inset: auto;
+}
+
 .detailImageContainer .card {
   margin: 0;
 }
@@ -30,23 +91,27 @@
 }
 
 .detailLogo {
-  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.7));
+}
+
+.layout-desktop .detailLogo {
+  max-height: 18vh;
 }
 
 /* --- Titles ------------------------------------------------------------- */
 .nameContainer > h1.itemName,
 .nameContainer > h1.parentName {
-  font-size: 2.5em;
+  font-size: 3.2em;
   font-weight: 700;
   letter-spacing: var(--la-tracking-display);
-  line-height: 1.08;
-  margin: 0 0 0.25em;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.55);
+  line-height: 1.05;
+  margin: 0 0 0.3em;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6);
 }
 
 .layout-mobile .nameContainer > h1.itemName,
 .layout-mobile .nameContainer > h1.parentName {
-  font-size: 1.75em;
+  font-size: 1.9em;
 }
 
 .itemName.originalTitle,

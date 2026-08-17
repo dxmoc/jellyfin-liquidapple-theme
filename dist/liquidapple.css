@@ -129,6 +129,24 @@
   --la-header-h: 4.2em;
   --la-gutter: 1.6em;
   --la-lift: -4px; /* how far a hovered card rises */
+
+  /* --- Detail hero --------------------------------------------------------
+     The item page is a hero: artwork takes most of the viewport and the info
+     block sits at the bottom of it behind a scrim. The geometry follows
+     ElegantFin's, which is proven against jellyfin's own layout.
+
+     --la-hero-align is `start` because that is how Apple lays out a hero (the
+     TV app included). Set it to `center` for ElegantFin's centred variant.
+     --la-detail-poster is `none` because a poster and a full-bleed backdrop
+     fight over the same space; set it to `block` to bring the poster back. */
+  --la-hero-height: 72vh;
+  --la-hero-min: 46vh;
+  --la-hero-ribbon-min: 25vh;
+  --la-hero-scrim-start: 15vh;
+  --la-hero-scrim-mid: 46vh;
+  --la-hero-scrim: rgba(6, 7, 10, 0.80);
+  --la-hero-align: start;
+  --la-detail-poster: none;
 }
 
 /* ==== 01-base.css ==== */
@@ -222,15 +240,28 @@ body {
    the global one, so styling that alone leaves detail-page artwork at full
    strength — and every glass surface layered over it then amplifies exactly
    that. Same treatment, slightly darker, since content sits directly on it. */
+/* Given the full hero height, the fade has to run across most of the element
+   rather than the top third, otherwise the image ends in a hard horizontal
+   line partway down the page. */
 .itemBackdrop {
-  filter: saturate(115%) brightness(0.6);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 34%, transparent 92%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 34%, transparent 92%);
+  display: block !important;
+  filter: saturate(112%) brightness(0.66);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 52%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 52%, transparent 100%);
+}
+
+.layout-desktop .itemBackdrop {
+  height: var(--la-hero-height);
+}
+
+.layout-tv .itemBackdrop {
+  height: 42vh;
 }
 
 .layout-mobile .itemBackdrop {
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 18%, transparent 72%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 18%, transparent 72%);
+  height: 46vh;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 100%);
 }
 
 .layout-mobile .backdropImage {
@@ -315,11 +346,26 @@ a:hover,
   text-decoration-color: var(--la-text-faint);
 }
 
+/* !important because jellyfin underlines these through selectors more specific
+   than a bare `a` — the plain rule above loses and card captions, genres,
+   studios and cast names all arrive underlined. */
 .cardText a,
 .cardText,
 .listItemBodyText a,
-.sectionTitleTextButton {
+.sectionTitleTextButton,
+.detailsGroupItem > .content > a,
+.detailsGroupItem a,
+.itemGenres a,
+.nameContainer a,
+.itemTags > a,
+.itemExternalLinks.focuscontainer-x > a {
   text-decoration: none !important;
+}
+
+.detailsGroupItem a:hover,
+.itemGenres a:hover {
+  text-decoration: underline !important;
+  text-decoration-color: var(--la-text-faint);
 }
 
 ::selection {
@@ -1023,22 +1069,83 @@ a:hover,
    block becomes a pane floating over the backdrop rather than text on a wash.
    ========================================================================== */
 
-/* NOTE: there was a glass pane on .detailPagePrimaryContainer here. On a real
-   server that container is only the narrow ribbon holding the title and chips —
-   not the whole info block the way preview/index.html modelled it — so the pane
-   rendered as a stray band with the poster hanging out of both ends. Removed
-   until the layout is rebuilt against a real DOM dump rather than a guess. */
-.layout-mobile .detailPagePrimaryContainer {
+/* --- Hero ----------------------------------------------------------------
+   The artwork gets the viewport and the info block sits at the bottom of it,
+   over a scrim. Both containers have to give up their own backgrounds and
+   padding first, or jellyfin's defaults reintroduce the band this replaces. */
+.detailPageWrapperContainer {
+  margin-top: unset;
+  padding-top: unset;
+}
+
+.layout-desktop .detailPageWrapperContainer,
+.layout-tv .detailPageWrapperContainer {
+  min-height: var(--la-hero-min);
+  background: linear-gradient(
+    180deg,
+    transparent var(--la-hero-scrim-start),
+    var(--la-hero-scrim) var(--la-hero-scrim-mid),
+    var(--la-hero-scrim) 100%
+  );
+}
+
+.detailPagePrimaryContainer,
+.layout-desktop .detailPagePrimaryContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  background: transparent;
+  padding: 0;
+}
+
+.layout-desktop .detailRibbon,
+.layout-tv .detailRibbon {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: var(--la-hero-align);
+  text-align: var(--la-hero-align);
+  min-height: var(--la-hero-ribbon-min);
+  height: 100%;
+  background-color: transparent;
+  padding-inline: var(--la-gutter);
+}
+
+.infoWrapper {
+  align-items: var(--la-hero-align);
+  text-align: var(--la-hero-align);
+}
+
+.detailPagePrimaryContainer > .detailPagePrimaryContent {
+  padding-top: 0;
+  padding-inline: var(--la-gutter);
+}
+
+.layout-mobile .detailPagePrimaryContainer,
+.layout-mobile .detailPagePrimaryContent {
   padding-inline: 1em;
 }
 
 .detailPageSecondaryContainer {
   background: transparent;
   border: none;
-  padding-top: 0.5em;
+  padding-top: 0;
 }
 
-/* --- Poster / logo ------------------------------------------------------- */
+/* --- Poster / logo -------------------------------------------------------
+   On desktop the hero artwork already carries the item, so the poster is off
+   by default — the two of them competing for the same band is what made the
+   first attempt look cluttered. --la-detail-poster brings it back. */
+.layout-desktop .detailImageContainer .card {
+  display: var(--la-detail-poster);
+  margin: auto auto 0;
+  width: 22vh !important;
+  float: none;
+  position: relative !important;
+  inset: auto;
+}
+
 .detailImageContainer .card {
   margin: 0;
 }
@@ -1049,23 +1156,27 @@ a:hover,
 }
 
 .detailLogo {
-  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.7));
+}
+
+.layout-desktop .detailLogo {
+  max-height: 18vh;
 }
 
 /* --- Titles ------------------------------------------------------------- */
 .nameContainer > h1.itemName,
 .nameContainer > h1.parentName {
-  font-size: 2.5em;
+  font-size: 3.2em;
   font-weight: 700;
   letter-spacing: var(--la-tracking-display);
-  line-height: 1.08;
-  margin: 0 0 0.25em;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.55);
+  line-height: 1.05;
+  margin: 0 0 0.3em;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6);
 }
 
 .layout-mobile .nameContainer > h1.itemName,
 .layout-mobile .nameContainer > h1.parentName {
-  font-size: 1.75em;
+  font-size: 1.9em;
 }
 
 .itemName.originalTitle,
@@ -1429,11 +1540,27 @@ a:hover,
    control's arrow has to go — otherwise both are drawn and the platform one
    shows up as a bare white box next to the chevron. */
 .emby-select,
-.emby-select-withcolor {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  padding-right: 2.4em !important;
+.emby-select-withcolor,
+select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: none !important;
+  padding-right: 2.6em !important;
+}
+
+/* Jellyfin's own chevron overlay: keep it visible and out of the way of the
+   click target, now that the platform arrow underneath is gone. */
+.selectArrowContainer {
+  display: flex;
+  align-items: center;
+  color: var(--la-text-dim);
+  pointer-events: none;
+}
+
+.selectArrow {
+  color: inherit;
+  opacity: 0.9;
 }
 
 .emby-select::-ms-expand {

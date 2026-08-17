@@ -134,11 +134,27 @@
    control's arrow has to go — otherwise both are drawn and the platform one
    shows up as a bare white box next to the chevron. */
 .emby-select,
-.emby-select-withcolor {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  padding-right: 2.4em !important;
+.emby-select-withcolor,
+select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: none !important;
+  padding-right: 2.6em !important;
+}
+
+/* Jellyfin's own chevron overlay: keep it visible and out of the way of the
+   click target, now that the platform arrow underneath is gone. */
+.selectArrowContainer {
+  display: flex;
+  align-items: center;
+  color: var(--la-text-dim);
+  pointer-events: none;
+}
+
+.selectArrow {
+  color: inherit;
+  opacity: 0.9;
 }
 
 .emby-select::-ms-expand {

@@ -123,4 +123,22 @@
   --la-header-h: 4.2em;
   --la-gutter: 1.6em;
   --la-lift: -4px; /* how far a hovered card rises */
+
+  /* --- Detail hero --------------------------------------------------------
+     The item page is a hero: artwork takes most of the viewport and the info
+     block sits at the bottom of it behind a scrim. The geometry follows
+     ElegantFin's, which is proven against jellyfin's own layout.
+
+     --la-hero-align is `start` because that is how Apple lays out a hero (the
+     TV app included). Set it to `center` for ElegantFin's centred variant.
+     --la-detail-poster is `none` because a poster and a full-bleed backdrop
+     fight over the same space; set it to `block` to bring the poster back. */
+  --la-hero-height: 72vh;
+  --la-hero-min: 46vh;
+  --la-hero-ribbon-min: 25vh;
+  --la-hero-scrim-start: 15vh;
+  --la-hero-scrim-mid: 46vh;
+  --la-hero-scrim: rgba(6, 7, 10, 0.80);
+  --la-hero-align: start;
+  --la-detail-poster: none;
 }

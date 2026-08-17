@@ -88,15 +88,28 @@ body {
    the global one, so styling that alone leaves detail-page artwork at full
    strength — and every glass surface layered over it then amplifies exactly
    that. Same treatment, slightly darker, since content sits directly on it. */
+/* Given the full hero height, the fade has to run across most of the element
+   rather than the top third, otherwise the image ends in a hard horizontal
+   line partway down the page. */
 .itemBackdrop {
-  filter: saturate(115%) brightness(0.6);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 34%, transparent 92%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 34%, transparent 92%);
+  display: block !important;
+  filter: saturate(112%) brightness(0.66);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 52%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 52%, transparent 100%);
+}
+
+.layout-desktop .itemBackdrop {
+  height: var(--la-hero-height);
+}
+
+.layout-tv .itemBackdrop {
+  height: 42vh;
 }
 
 .layout-mobile .itemBackdrop {
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 18%, transparent 72%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 18%, transparent 72%);
+  height: 46vh;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 100%);
 }
 
 .layout-mobile .backdropImage {
@@ -181,11 +194,26 @@ a:hover,
   text-decoration-color: var(--la-text-faint);
 }
 
+/* !important because jellyfin underlines these through selectors more specific
+   than a bare `a` — the plain rule above loses and card captions, genres,
+   studios and cast names all arrive underlined. */
 .cardText a,
 .cardText,
 .listItemBodyText a,
-.sectionTitleTextButton {
+.sectionTitleTextButton,
+.detailsGroupItem > .content > a,
+.detailsGroupItem a,
+.itemGenres a,
+.nameContainer a,
+.itemTags > a,
+.itemExternalLinks.focuscontainer-x > a {
   text-decoration: none !important;
+}
+
+.detailsGroupItem a:hover,
+.itemGenres a:hover {
+  text-decoration: underline !important;
+  text-decoration-color: var(--la-text-faint);
 }
 
 ::selection {
