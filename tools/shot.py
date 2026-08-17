@@ -17,7 +17,11 @@ import urllib.request
 
 from cdp import CHROME, PORT, PROFILE, WS
 
-VIEWPORT = (1600, 1400)
+# LA_VIEWPORT=420x900 renders the mobile layout. Jellyfin picks .layout-mobile
+# from its own detection, so mobile:true has to be passed through as well.
+_vp = os.environ.get('LA_VIEWPORT', '1600x1400').split('x')
+VIEWPORT = (int(_vp[0]), int(_vp[1]))
+MOBILE = VIEWPORT[0] < 800
 
 
 def main():
@@ -29,7 +33,13 @@ def main():
         [CHROME, '--headless=new', '--disable-gpu', '--no-sandbox', '--no-first-run',
          '--hide-scrollbars', '--force-device-scale-factor=1',
          f'--user-data-dir={PROFILE}', f'--remote-debugging-port={PORT}',
-         f'--window-size={VIEWPORT[0]},{VIEWPORT[1]}', 'about:blank'],
+         f'--window-size={VIEWPORT[0]},{VIEWPORT[1]}']
+        # Jellyfin picks .layout-mobile from the user agent, not the window size,
+        # so a narrow viewport alone renders the desktop layout squeezed thin.
+        + ([('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)'
+             ' AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0'
+             ' Mobile/15E148 Safari/604.1')] if MOBILE else [])
+        + ['about:blank'],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         target = None
@@ -69,12 +79,14 @@ def main():
         call('Runtime.enable')
         call('Emulation.setDeviceMetricsOverride',
              {'width': VIEWPORT[0], 'height': VIEWPORT[1],
-              'deviceScaleFactor': 1, 'mobile': False})
+              'deviceScaleFactor': 1, 'mobile': MOBILE})
         call('Page.navigate', {'url': url})
 
         for _ in range(50):
             time.sleep(0.5)
-            if js("document.querySelector('#itemDetailPage:not(.hide)')?'y':'n'") == 'y':
+            # Any visible page, not just the item page — this tool is used on
+            # home, library, dashboard and login too.
+            if js("document.querySelector('.page:not(.hide)')?'y':'n'") == 'y':
                 break
         time.sleep(3)
 
@@ -111,22 +123,32 @@ def main():
         if probe_file:
             print(js(open(probe_file, encoding='utf-8').read()))
 
-        # Lazy images only start loading when scrolled into view, and capturing
-        # before they finish shows blurhash placeholders that look exactly like a
-        # washed-out theme bug. Walk the page, then wait for them to settle.
-        js("window.scrollTo(0, document.body.scrollHeight); 1")
-        time.sleep(2)
-        js("window.scrollTo(0, 0); 1")
-        # .blurhash-canvas stays in the DOM for good once created, so counting it
-        # never reaches zero — only genuinely incomplete <img> elements count.
-        for _ in range(25):
+        # Lazy loading is viewport-driven, and most jellyfin cards carry their
+        # artwork as a CSS background-image — which never appears in
+        # document.images, so counting incomplete <img> misses them entirely and
+        # the capture lands on blurhash placeholders. Walk the page in steps so
+        # every row enters the viewport, then confirm the card backgrounds have
+        # actually resolved to a URL.
+        for frac in (0.0, 0.25, 0.5, 0.75, 1.0, 0.5, 0.0):
+            js(f"window.scrollTo(0, document.body.scrollHeight*{frac}); 1")
+            time.sleep(1.2)
+
+        for _ in range(30):
             time.sleep(1)
-            pending = js("[].slice.call(document.images)"
-                         ".filter(function(i){return !i.complete;}).length")
+            pending = js("""(function(){
+                var imgs=[].slice.call(document.images)
+                    .filter(function(i){return !i.complete;}).length;
+                var cards=[].slice.call(
+                    document.querySelectorAll('.cardImageContainer,.listItemImage'))
+                    .filter(function(e){
+                        return getComputedStyle(e).backgroundImage === 'none';
+                    }).length;
+                return imgs + cards;
+            })()""")
             if not pending:
                 break
-        time.sleep(6)
-        print('unfertige <img> beim Ausloesen:', pending)
+        time.sleep(4)
+        print('ausstehend beim Ausloesen:', pending)
 
         # Horizontal scrollers (cast, "similar") make scrollWidth several times
         # the viewport, and captureBeyondViewport grabs all of it — which renders

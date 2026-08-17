@@ -71,6 +71,25 @@
   border-radius: var(--la-r-xl);
 }
 
+/* Not a surface here — just a wrapper around Quick Connect and the forgotten
+   password link. Left in the material group it renders as a panel wider than
+   the card it sits under. */
+#loginPage .readOnlyContent {
+  max-width: 27em;
+  margin: 0.7em auto 0;
+  padding: 0;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+#loginPage .readOnlyContent .emby-button {
+  width: 100%;
+  margin-top: 0.4em;
+}
+
 #txtLoginDisclaimer {
   color: var(--la-text-faint);
   font-size: 0.88em;

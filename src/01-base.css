@@ -268,12 +268,11 @@ a:hover,
 
 /* --- Focus ---------------------------------------------------------------
    Apple rings the element rather than outlining it: a soft halo, no hard box. */
-:focus-visible {
+:focus-visible:not(.emby-input):not(.emby-textarea):not(.emby-select):not(select) {
   outline: none;
   box-shadow:
     0 0 0 2px var(--la-ground),
-    0 0 0 4px var(--la-focus),
-    0 0 14px 0 var(--la-accent-glow);
+    0 0 0 3px var(--la-focus);
 }
 
 /* --- Scrollbars ----------------------------------------------------------- */

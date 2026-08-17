@@ -154,6 +154,41 @@
   box-shadow: var(--la-edge-soft);
 }
 
+/* --- MUI palette ---------------------------------------------------------
+   Jellyfin's MUI theme pushes its cyan and a success green through the admin
+   area: avatars at rgb(41,182,246), contained primary buttons at rgb(0,164,220),
+   storage meters at rgb(102,187,106). This theme is deliberately neutral, so all
+   three take the accent instead. Error red is left alone — that one carries
+   meaning rather than branding. */
+.MuiAvatar-colorDefault {
+  background-color: var(--la-fill-active) !important;
+  color: var(--la-text) !important;
+}
+
+.MuiButton-containedPrimary,
+.MuiButton-containedInfo,
+.MuiButton-containedSuccess {
+  background-color: var(--la-accent) !important;
+  color: var(--la-accent-text) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), var(--la-shadow-sm) !important;
+}
+
+.MuiButton-containedPrimary:hover,
+.MuiButton-containedInfo:hover,
+.MuiButton-containedSuccess:hover {
+  filter: brightness(1.08);
+}
+
+.MuiLinearProgress-root {
+  background-color: var(--la-fill-sunken) !important;
+  border-radius: var(--la-r-pill);
+  overflow: hidden;
+}
+
+.MuiLinearProgress-bar {
+  background-color: var(--la-accent) !important;
+}
+
 /* --- Metadata editor -------------------------------------------------- */
 .editorNode,
 .metadataSidebarIcon {

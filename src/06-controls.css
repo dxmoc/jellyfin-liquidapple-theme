@@ -31,8 +31,13 @@
   box-shadow: var(--la-edge-soft), var(--la-shadow-md);
 }
 
-/* The one filled action per screen. */
-.button-submit,
+/* The one filled action per screen.
+   Two class selectors, because the control-material group in 02 matches these
+   through `.emby-button.raised` / `.emby-button.block` — a bare `.button-submit`
+   loses that tie and the primary action ends up looking like a secondary one. */
+.emby-button.button-submit,
+.button-submit.raised,
+.button-submit.block,
 .btnHeaderSave.button-flat {
   background: var(--la-accent);
   -webkit-backdrop-filter: none;
@@ -45,7 +50,9 @@
   font-weight: 650;
 }
 
-.button-submit:hover,
+.emby-button.button-submit:hover,
+.button-submit.raised:hover,
+.button-submit.block:hover,
 .btnHeaderSave.button-flat:hover {
   filter: brightness(1.08);
   box-shadow:
@@ -125,8 +132,8 @@
   background-color: var(--la-fill-sunken);
   box-shadow:
     inset 0 1px 2px rgba(0, 0, 0, 0.32),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.4),
-    0 0 0 3px var(--la-accent-glow);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+    0 0 0 2px rgba(255, 255, 255, 0.55);
   outline: none;
 }
 

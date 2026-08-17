@@ -18,7 +18,8 @@ import time
 import urllib.request
 
 CHROME = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
-PROFILE = os.path.expandvars(r'%LOCALAPPDATA%\liquidapple-dev-chrome')
+# LA_PROFILE lets the login page be rendered from a signed-out profile.
+PROFILE = os.environ.get('LA_PROFILE') or os.path.expandvars(r'%LOCALAPPDATA%\liquidapple-dev-chrome')
 PORT = 9333
 
 

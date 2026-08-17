@@ -432,12 +432,11 @@ a:hover,
 
 /* --- Focus ---------------------------------------------------------------
    Apple rings the element rather than outlining it: a soft halo, no hard box. */
-:focus-visible {
+:focus-visible:not(.emby-input):not(.emby-textarea):not(.emby-select):not(select) {
   outline: none;
   box-shadow:
     0 0 0 2px var(--la-ground),
-    0 0 0 4px var(--la-focus),
-    0 0 14px 0 var(--la-accent-glow);
+    0 0 0 3px var(--la-focus);
 }
 
 /* --- Scrollbars ----------------------------------------------------------- */
@@ -1544,8 +1543,13 @@ a:hover,
   box-shadow: var(--la-edge-soft), var(--la-shadow-md);
 }
 
-/* The one filled action per screen. */
-.button-submit,
+/* The one filled action per screen.
+   Two class selectors, because the control-material group in 02 matches these
+   through `.emby-button.raised` / `.emby-button.block` — a bare `.button-submit`
+   loses that tie and the primary action ends up looking like a secondary one. */
+.emby-button.button-submit,
+.button-submit.raised,
+.button-submit.block,
 .btnHeaderSave.button-flat {
   background: var(--la-accent);
   -webkit-backdrop-filter: none;
@@ -1558,7 +1562,9 @@ a:hover,
   font-weight: 650;
 }
 
-.button-submit:hover,
+.emby-button.button-submit:hover,
+.button-submit.raised:hover,
+.button-submit.block:hover,
 .btnHeaderSave.button-flat:hover {
   filter: brightness(1.08);
   box-shadow:
@@ -1638,8 +1644,8 @@ a:hover,
   background-color: var(--la-fill-sunken);
   box-shadow:
     inset 0 1px 2px rgba(0, 0, 0, 0.32),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.4),
-    0 0 0 3px var(--la-accent-glow);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+    0 0 0 2px rgba(255, 255, 255, 0.55);
   outline: none;
 }
 
@@ -2407,6 +2413,25 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
   border-radius: var(--la-r-xl);
 }
 
+/* Not a surface here — just a wrapper around Quick Connect and the forgotten
+   password link. Left in the material group it renders as a panel wider than
+   the card it sits under. */
+#loginPage .readOnlyContent {
+  max-width: 27em;
+  margin: 0.7em auto 0;
+  padding: 0;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+#loginPage .readOnlyContent .emby-button {
+  width: 100%;
+  margin-top: 0.4em;
+}
+
 #txtLoginDisclaimer {
   color: var(--la-text-faint);
   font-size: 0.88em;
@@ -2568,6 +2593,41 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
 .MuiAvatar-circular {
   border-radius: var(--la-r-pill);
   box-shadow: var(--la-edge-soft);
+}
+
+/* --- MUI palette ---------------------------------------------------------
+   Jellyfin's MUI theme pushes its cyan and a success green through the admin
+   area: avatars at rgb(41,182,246), contained primary buttons at rgb(0,164,220),
+   storage meters at rgb(102,187,106). This theme is deliberately neutral, so all
+   three take the accent instead. Error red is left alone — that one carries
+   meaning rather than branding. */
+.MuiAvatar-colorDefault {
+  background-color: var(--la-fill-active) !important;
+  color: var(--la-text) !important;
+}
+
+.MuiButton-containedPrimary,
+.MuiButton-containedInfo,
+.MuiButton-containedSuccess {
+  background-color: var(--la-accent) !important;
+  color: var(--la-accent-text) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), var(--la-shadow-sm) !important;
+}
+
+.MuiButton-containedPrimary:hover,
+.MuiButton-containedInfo:hover,
+.MuiButton-containedSuccess:hover {
+  filter: brightness(1.08);
+}
+
+.MuiLinearProgress-root {
+  background-color: var(--la-fill-sunken) !important;
+  border-radius: var(--la-r-pill);
+  overflow: hidden;
+}
+
+.MuiLinearProgress-bar {
+  background-color: var(--la-accent) !important;
 }
 
 /* --- Metadata editor -------------------------------------------------- */
