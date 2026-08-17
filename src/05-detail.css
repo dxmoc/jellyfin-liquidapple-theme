@@ -160,6 +160,15 @@
   color: var(--la-accent);
 }
 
+/* p.itemGenres sits above the tagline in .detailSectionContent. Not in the
+   preview harness, so it went unstyled and inherited body text weight. */
+.itemGenres {
+  color: var(--la-text-dim);
+  font-weight: 500;
+  letter-spacing: 0;
+  margin: 0 0 0.4em;
+}
+
 /* --- Overview ----------------------------------------------------------- */
 .detailSectionContent,
 .overview {

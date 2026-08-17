@@ -83,6 +83,22 @@ body {
   animation: la-backdrop-in var(--la-slow) var(--la-ease) both;
 }
 
+/* The detail page carries a *second* backdrop: #itemBackdrop, inside the page
+   itself (the page gets .selfBackdropPage). .backdropImage above only covers
+   the global one, so styling that alone leaves detail-page artwork at full
+   strength — and every glass surface layered over it then amplifies exactly
+   that. Same treatment, slightly darker, since content sits directly on it. */
+.itemBackdrop {
+  filter: saturate(115%) brightness(0.6);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 34%, transparent 92%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 34%, transparent 92%);
+}
+
+.layout-mobile .itemBackdrop {
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 18%, transparent 72%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 18%, transparent 72%);
+}
+
 .layout-mobile .backdropImage {
   -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 22%, transparent 62%);
   mask-image: linear-gradient(180deg, #000 0%, #000 22%, transparent 62%);
