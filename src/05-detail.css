@@ -1,0 +1,268 @@
+/* ============================================================================
+   05 — DETAIL PAGE
+   The one page where Liquid Glass has real artwork to refract, so the info
+   block becomes a pane floating over the backdrop rather than text on a wash.
+   ========================================================================== */
+
+.layout-desktop .detailPagePrimaryContainer {
+  margin: 0 var(--la-gutter) 1.4em;
+  padding: 1.6em;
+  border-radius: var(--la-r-2xl);
+  background: var(--la-fill-thick);
+  -webkit-backdrop-filter: var(--la-material);
+  backdrop-filter: var(--la-material);
+  box-shadow: var(--la-edge), var(--la-shadow-lg);
+}
+
+.layout-mobile .detailPagePrimaryContainer {
+  padding-inline: 1em;
+}
+
+.detailPageSecondaryContainer {
+  background: transparent;
+  border: none;
+  padding-top: 0.5em;
+}
+
+/* --- Poster / logo ------------------------------------------------------- */
+.detailImageContainer .card {
+  margin: 0;
+}
+
+.detailImageContainer .cardScalable {
+  border-radius: var(--la-r-xl);
+  box-shadow: var(--la-edge-soft), var(--la-shadow-lg);
+}
+
+.detailLogo {
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.6));
+}
+
+/* --- Titles ------------------------------------------------------------- */
+.nameContainer > h1.itemName,
+.nameContainer > h1.parentName {
+  font-size: 2.5em;
+  font-weight: 700;
+  letter-spacing: var(--la-tracking-display);
+  line-height: 1.08;
+  margin: 0 0 0.25em;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.55);
+}
+
+.layout-mobile .nameContainer > h1.itemName,
+.layout-mobile .nameContainer > h1.parentName {
+  font-size: 1.75em;
+}
+
+.itemName.originalTitle,
+.subtitle {
+  color: var(--la-text-dim);
+  font-weight: 450;
+  letter-spacing: 0;
+}
+
+/* --- Info chips --------------------------------------------------------- */
+.itemMiscInfo {
+  gap: 0.45em;
+  margin-bottom: 0.9em;
+}
+
+.mediaInfoItem {
+  padding: 0.28em 0.72em;
+  border-radius: var(--la-r-pill);
+  font-size: 0.86em;
+  font-weight: 550;
+  letter-spacing: 0;
+  color: var(--la-text-dim);
+}
+
+.mediaInfoOfficialRating {
+  border: 1px solid var(--la-rim-hover);
+  background: transparent;
+  box-shadow: none;
+}
+
+.starIcon {
+  color: var(--la-warn);
+}
+
+/* --- Buttons ------------------------------------------------------------
+   One filled primary, everything else a bare glass circle. Apple never puts
+   two competing filled buttons next to each other. */
+.mainDetailButtons {
+  align-items: center;
+  gap: 0.15em;
+  margin: 0.4em 0 0.9em;
+}
+
+.btnPlay.detailButton {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4ch;
+  height: 3em;
+  min-width: 9.5em;
+  margin: 0 0.6em 0 0 !important;
+  padding: 0 1.5em;
+  border: none;
+  border-radius: var(--la-r-pill);
+  background: var(--la-accent);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25),
+    var(--la-shadow-md);
+  color: var(--la-accent-text);
+  font-weight: 650;
+  letter-spacing: var(--la-tracking-tight);
+  transition:
+    transform var(--la-fast) var(--la-ease-out),
+    box-shadow var(--la-fast) var(--la-ease-out),
+    filter var(--la-fast) var(--la-ease-out);
+}
+
+.btnPlay.detailButton:hover {
+  filter: brightness(1.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+    var(--la-shadow-lift),
+    0 0 24px var(--la-accent-glow);
+}
+
+.btnPlay.detailButton .detailButton-content {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4ch;
+}
+
+.detailButton:not(.btnPlay) {
+  width: 2.9em;
+  height: 2.9em;
+  margin: 0.2em !important;
+  padding: 0 !important;
+  border: none;
+  border-radius: var(--la-r-pill);
+  background-color: var(--la-fill);
+  color: var(--la-text);
+}
+
+.detailButton:not(.btnPlay):hover {
+  background-color: var(--la-fill-hover);
+  box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
+  color: #fff;
+}
+
+.detailButton-icon {
+  margin: 0;
+}
+
+.playstatebutton-icon-played,
+.emby-button[title="Favorite"] .material-icons.favorite {
+  color: var(--la-accent);
+}
+
+/* --- Overview ----------------------------------------------------------- */
+.detailSectionContent,
+.overview {
+  color: var(--la-text-dim);
+  font-size: 1.02em;
+  font-weight: 450;
+  letter-spacing: 0;
+  line-height: 1.55;
+  max-width: 62em;
+}
+
+.overview-expand.emby-button {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--la-text);
+  font-weight: 600;
+  padding: 0.2em 0;
+}
+
+.overview-expand.emby-button:hover {
+  color: #fff;
+}
+
+/* --- Details table ----------------------------------------------------- */
+.itemDetailsGroup {
+  margin-top: 1.2em;
+  padding: 1em 1.2em;
+  border-radius: var(--la-r-lg);
+  background: var(--la-fill);
+  -webkit-backdrop-filter: var(--la-material-thin);
+  backdrop-filter: var(--la-material-thin);
+  box-shadow: var(--la-edge-soft);
+}
+
+.detailsGroupItem {
+  padding: 0.4em 0;
+}
+
+.detailsGroupItem:not(:last-child) {
+  border-bottom: 1px solid var(--la-rim);
+}
+
+.detailsGroupItem > .label {
+  color: var(--la-text-faint);
+  font-weight: 550;
+  min-width: 9em;
+}
+
+.detailsGroupItem > .content {
+  color: var(--la-text);
+}
+
+/* --- External links / tags --------------------------------------------- */
+.itemExternalLinks.focuscontainer-x {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45em;
+  margin: 0.9em 0;
+}
+
+.itemExternalLinks.focuscontainer-x > .button-link,
+.itemTags > a {
+  padding: 0.35em 0.85em;
+  border-radius: var(--la-r-pill);
+  font-size: 0.88em;
+  font-weight: 550;
+  text-decoration: none;
+  color: var(--la-text-dim);
+}
+
+.itemExternalLinks.focuscontainer-x > .button-link:hover,
+.itemTags > a:hover {
+  color: #fff;
+}
+
+/* --- Track selectors --------------------------------------------------- */
+.trackSelections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7em;
+  margin: 1em 0;
+}
+
+.trackSelectionFieldContainer > label,
+.selectLabel {
+  color: var(--la-text-faint);
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* --- Cast ------------------------------------------------------------- */
+#castCollapsible .cardImageContainer,
+#guestCastContent .cardImageContainer {
+  border-radius: var(--la-r-pill);
+}
+
+#castCollapsible .cardScalable,
+#guestCastContent .cardScalable {
+  border-radius: var(--la-r-pill);
+}

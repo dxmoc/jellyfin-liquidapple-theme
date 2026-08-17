@@ -1,0 +1,243 @@
+/* ============================================================================
+   07 — SURFACES
+   Dialogs, action sheets, toasts, lists, tables. These are the panes that
+   appear *over* other panes, so they run thicker glass and a deeper shadow to
+   stay legible against whatever they land on.
+   ========================================================================== */
+
+/* --- Dialogs ------------------------------------------------------------- */
+.dialog:not(.dialog-fullscreen) {
+  --la-blur: var(--la-blur-thick);
+  --la-fill-chrome: rgba(22, 24, 32, 0.72);
+  min-width: 13em;
+  border: none;
+  border-radius: var(--la-r-2xl);
+  box-shadow: var(--la-edge), var(--la-shadow-lg);
+  overflow: hidden;
+  animation: la-sheet-in var(--la-normal) var(--la-ease) both;
+}
+
+@keyframes la-sheet-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(1.4em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dialogBackdropOpened {
+  background: rgba(0, 0, 0, 0.45);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  opacity: 1;
+}
+
+.formDialogHeader:not(.formDialogHeader-clear),
+.formDialogFooter:not(.formDialogFooter-clear) {
+  background: transparent;
+  border: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.formDialogHeader:not(.formDialogHeader-clear) {
+  border-bottom: 1px solid var(--la-rim);
+}
+
+.formDialogFooter:not(.formDialogFooter-clear) {
+  border-top: 1px solid var(--la-rim);
+}
+
+.formDialogHeaderTitle {
+  font-weight: 650;
+}
+
+.formDialogFooter:not(.formDialogFooter-clear.formDialogFooter-flex) > .formDialogFooterItem {
+  border-radius: var(--la-r-pill);
+}
+
+.collapseContent {
+  border: none;
+  border-radius: var(--la-r-lg);
+  padding: 1em 1.2em;
+}
+
+/* --- Action sheets ------------------------------------------------------
+   The iOS sheet: a rounded glass card with hairline-separated rows. */
+.actionSheetContent {
+  --la-blur: var(--la-blur-thick);
+  --la-fill-chrome: rgba(22, 24, 32, 0.74);
+  padding: 0.35em !important;
+  border: none;
+  border-radius: var(--la-r-xl);
+  box-shadow: var(--la-edge), var(--la-shadow-lg);
+}
+
+.actionSheetContent > h1,
+.actionSheetContent > .actionSheetTitle {
+  color: var(--la-text-faint);
+  font-size: 0.86em;
+  font-weight: 600;
+  padding: 0.7em 1em 0.5em;
+  text-align: center;
+}
+
+.actionSheetMenuItem {
+  min-height: 2.9em;
+  margin: 0.08em 0;
+  padding: 0 1em !important;
+  border: none;
+  border-radius: var(--la-r-md);
+  background: transparent;
+  color: var(--la-text);
+  font-weight: 500;
+  transition: background-color var(--la-fast) var(--la-ease-out);
+}
+
+.actionSheetMenuItem:hover {
+  background-color: var(--la-fill-hover);
+}
+
+.actionSheetMenuItem:has(.listItemIcon.check:not([style*="hidden"])) {
+  background-color: var(--la-fill);
+  font-weight: 600;
+}
+
+.actionSheetMenuItem:has(.listItemIcon.check:not([style*="hidden"])) .listItemIcon.check {
+  color: var(--la-accent);
+}
+
+.actionsheetDivider {
+  border: none;
+  border-top: 1px solid var(--la-rim);
+  margin: 0.3em 0.6em;
+}
+
+/* --- Toast / up-next --------------------------------------------------- */
+.toast,
+.upNextContainer {
+  border: none;
+  border-radius: var(--la-r-xl);
+  box-shadow: var(--la-edge), var(--la-shadow-lg);
+  padding: 0.9em 1.3em;
+  animation: la-sheet-in var(--la-normal) var(--la-ease) both;
+}
+
+.skip-button {
+  border: none;
+  border-radius: var(--la-r-pill);
+  padding: 0.6em 1.3em;
+  font-weight: 600;
+}
+
+/* --- Lists ------------------------------------------------------------- */
+.paperList,
+.readOnlyContent,
+.itemsContainer.vertical-list {
+  border: none;
+  border-radius: var(--la-r-lg);
+  overflow: hidden;
+}
+
+.listItem:not(.actionSheetMenuItem):not(.navMenuOption) {
+  min-height: 3.4em;
+  margin: 0.1em 0;
+  border: none;
+  border-radius: var(--la-r-md);
+  background: transparent;
+  transition:
+    background-color var(--la-fast) var(--la-ease-out),
+    transform var(--la-fast) var(--la-ease-out);
+}
+
+.listItem:not(.actionSheetMenuItem):not(.navMenuOption):hover {
+  background-color: var(--la-fill-hover);
+}
+
+.listItem-border {
+  border-bottom: 1px solid var(--la-rim);
+}
+
+.listItemImage {
+  border-radius: var(--la-r-sm);
+  box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
+}
+
+.listItemBody > .listItemBodyText:not(.secondary) {
+  color: var(--la-text);
+  font-weight: 550;
+}
+
+.listItemBodyText.secondary {
+  color: var(--la-text-dim);
+  font-weight: 450;
+}
+
+.listItemIcon:not(.listItemIcon-transparent) {
+  border-radius: var(--la-r-sm);
+  color: var(--la-text-dim);
+}
+
+.vertical-list > .listGroupHeader {
+  color: var(--la-text-faint);
+  font-size: 0.85em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 1.2em 0.4em 0.4em;
+}
+
+/* --- Selection mode -------------------------------------------------- */
+.selectionCommandsPanel {
+  --la-fill-chrome: rgba(22, 24, 32, 0.7);
+  background: var(--la-fill-chrome);
+  -webkit-backdrop-filter: var(--la-material);
+  backdrop-filter: var(--la-material);
+  border: none;
+  box-shadow: var(--la-edge), var(--la-shadow-md);
+}
+
+.itemSelectionPanel {
+  border: none;
+  border-radius: inherit;
+}
+
+/* --- Messages -------------------------------------------------------- */
+.centerMessage,
+.noItemsMessage {
+  color: var(--la-text-dim);
+}
+
+.infoBanner {
+  border: none;
+  border-radius: var(--la-r-lg);
+  padding: 0.9em 1.2em;
+  color: var(--la-text);
+}
+
+/* --- Tables --------------------------------------------------------- */
+table:not(.MuiTable-root.MuiTable-stickyHeader) {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.detailTableHeaderCell {
+  background: transparent;
+  border-bottom: 1px solid var(--la-rim);
+  color: var(--la-text-faint);
+  font-size: 0.85em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.detailTableBodyRow-shaded:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.detailTableBodyRow-shaded:nth-child(2n) {
+  background: transparent;
+}

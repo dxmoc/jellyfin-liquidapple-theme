@@ -1,0 +1,229 @@
+/* ============================================================================
+   03 — CHROME
+   Header, section tabs, navigation drawer. On desktop the header detaches from
+   the viewport edges and floats as a capsule, the way an iOS 26 toolbar does.
+   Mobile keeps it flush, because a floating bar under a notch looks wrong.
+   ========================================================================== */
+
+.skinHeader {
+  padding-top: max(env(safe-area-inset-top), 0px) !important;
+  z-index: 1000;
+  transition:
+    transform var(--la-normal) var(--la-ease),
+    background-color var(--la-normal) var(--la-ease),
+    box-shadow var(--la-normal) var(--la-ease);
+}
+
+.headerTop {
+  align-items: center;
+  height: var(--la-header-h);
+  padding: 0 0.5em;
+}
+
+.layout-desktop .skinHeader-blurred:not(.osdHeader),
+.layout-desktop .skinHeader-withBackground:not(.osdHeader) {
+  margin: 0.55em;
+  border-radius: var(--la-r-xl);
+  box-shadow: var(--la-edge), var(--la-shadow-lg);
+  overflow: hidden;
+}
+
+/* Scrolled to the top with nothing behind it, the header has no reason to
+   assert itself — it thins out to almost nothing. */
+.skinHeader-withBackground.semiTransparent:not(.osdHeader) {
+  --la-fill-chrome: rgba(16, 18, 24, 0.22);
+  --la-blur: 14px;
+  box-shadow: var(--la-edge-soft);
+}
+
+.headroom--unpinned:not(.osdHeader) {
+  transform: translateY(calc(-100% - 1em));
+}
+
+/* --- Header buttons ------------------------------------------------------- */
+.headerButton,
+.paper-icon-button-light {
+  border-radius: var(--la-r-pill);
+  color: var(--la-text);
+  transition:
+    background-color var(--la-fast) var(--la-ease-out),
+    transform var(--la-fast) var(--la-ease-out),
+    box-shadow var(--la-fast) var(--la-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .paper-icon-button-light:hover:not(:disabled) {
+    background-color: var(--la-fill-hover);
+    box-shadow: var(--la-edge-soft);
+    color: #fff;
+    transform: none;
+  }
+}
+
+.paper-icon-button-light:active:not(:disabled) {
+  background-color: var(--la-fill-active);
+  transform: scale(0.92);
+}
+
+.pageTitle {
+  font-weight: 650;
+  letter-spacing: var(--la-tracking-display);
+  margin-inline-start: 0.35em;
+}
+
+.headerUserButton .MuiAvatar-circular,
+.headerUserButton img {
+  border-radius: var(--la-r-pill);
+  box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
+}
+
+/* --- Section tabs --------------------------------------------------------
+   Rebuilt as an iOS segmented control: one glass trough, pills inside it. */
+.sectionTabs {
+  background: transparent;
+  border: none;
+}
+
+.sectionTabs .emby-tabs {
+  display: inline-flex;
+  margin: 0.15em 0.6em 0.55em;
+  padding: 0.22em;
+  border-radius: var(--la-r-pill);
+  background: var(--la-fill-sunken);
+  -webkit-backdrop-filter: var(--la-material-thin);
+  backdrop-filter: var(--la-material-thin);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.34), inset 0 0 0 1px var(--la-rim);
+  overflow: hidden;
+}
+
+.sectionTabs .emby-tab-button {
+  display: inline-flex;
+  align-items: center;
+  height: 2.3em;
+  margin: 0;
+  padding: 0 1.15em;
+  border-radius: var(--la-r-pill);
+  background-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  color: var(--la-text-dim);
+  font-weight: 550;
+  letter-spacing: var(--la-tracking-tight);
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.sectionTabs .emby-tab-button:hover {
+  background-color: var(--la-fill);
+  box-shadow: none;
+  color: var(--la-text);
+}
+
+.sectionTabs .emby-tab-button-active {
+  background-color: var(--la-accent);
+  box-shadow: var(--la-shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  color: var(--la-accent-text);
+  font-weight: 600;
+}
+
+.emby-tab-button::before,
+.emby-tabs-slider::after {
+  display: none !important;
+}
+
+/* --- Drawer -------------------------------------------------------------- */
+.mainDrawer,
+.drawer-open {
+  --la-blur: var(--la-blur-thick);
+  --la-fill-chrome: rgba(14, 16, 22, 0.66);
+  border-right: none;
+  box-shadow: var(--la-edge), var(--la-shadow-lg);
+}
+
+.layout-desktop .mainDrawer {
+  margin: 0.55em;
+  border-radius: var(--la-r-xl);
+  height: calc(100% - 1.1em);
+  overflow: hidden;
+}
+
+.mainDrawer-scrollContainer {
+  padding: 0.5em 0.55em 1.4em;
+}
+
+.navMenuOption,
+.listItem.navMenuOption {
+  display: flex;
+  align-items: center;
+  min-height: 2.9em;
+  margin: 0.14em 0;
+  padding: 0 0.9em;
+  border-radius: var(--la-r-md);
+  background: transparent;
+  color: var(--la-text-dim);
+  font-weight: 500;
+  letter-spacing: var(--la-tracking-tight);
+  transition:
+    background-color var(--la-fast) var(--la-ease-out),
+    color var(--la-fast) var(--la-ease-out),
+    transform var(--la-fast) var(--la-ease-out);
+}
+
+.navMenuOption:hover {
+  background-color: var(--la-fill-hover);
+  color: var(--la-text);
+}
+
+.navMenuOption-selected {
+  background-color: var(--la-fill-active) !important;
+  box-shadow: var(--la-edge-soft);
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.navMenuOptionIcon,
+.navMenuOption .material-icons {
+  color: inherit;
+  margin-inline-end: 0.85em;
+  opacity: 0.9;
+}
+
+.sidebarHeader {
+  color: var(--la-text-faint);
+  font-size: 0.82em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1.1em 0.9em 0.4em;
+}
+
+.mainDrawer hr,
+.mainDrawer .navMenuDivider {
+  border: none;
+  border-top: 1px solid var(--la-rim);
+  margin: 0.5em 0.6em;
+}
+
+/* --- Search -------------------------------------------------------------- */
+.searchFields > .searchFieldsInner {
+  padding: 0.4em 0;
+}
+
+.searchfields-txtSearch {
+  height: 3em;
+  border-radius: var(--la-r-pill);
+  background-color: var(--la-fill-sunken);
+  -webkit-backdrop-filter: var(--la-material-thin);
+  backdrop-filter: var(--la-material-thin);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 0 0 1px var(--la-rim);
+  border: none;
+  padding-inline: 1.1em;
+  color: var(--la-text);
+}
+
+.searchfields-icon {
+  background: transparent;
+  border: none;
+  color: var(--la-text-dim);
+}

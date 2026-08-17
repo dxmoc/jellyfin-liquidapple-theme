@@ -1,0 +1,225 @@
+/* ============================================================================
+   04 — CARDS
+   Posters are the one place the theme deliberately does *not* use glass: they
+   are the content, so they stay opaque and let the glass elsewhere refract
+   them. What they do get is the same rim light, radius and spring.
+   ========================================================================== */
+
+.cardBox {
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0.45em;
+}
+
+.cardScalable,
+.visualCardBox {
+  border: none !important;
+  border-radius: var(--la-r-lg);
+  overflow: hidden !important;
+  box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
+  transition:
+    transform var(--la-normal) var(--la-ease),
+    box-shadow var(--la-normal) var(--la-ease);
+  will-change: transform;
+}
+
+.cardImageContainer,
+.defaultCardBackground {
+  background-color: var(--la-ground-raised);
+  border-radius: inherit;
+}
+
+.cardImageIcon {
+  color: var(--la-text-faint);
+}
+
+/* --- Hover ---------------------------------------------------------------
+   Rise, grow a touch, and pick up more rim light — as if the card came closer
+   to the light source. */
+@media (hover: hover) and (pointer: fine) {
+  .card-hoverable:hover .cardScalable,
+  .card-hoverable:hover .visualCardBox {
+    transform: translateY(var(--la-lift)) scale(1.03);
+    box-shadow:
+      inset 0 1px 0 0 var(--la-rim-hover),
+      inset 0 0 0 1px var(--la-rim-hover),
+      var(--la-shadow-lift);
+  }
+
+  .card-hoverable:hover .cardText-first {
+    color: #fff;
+  }
+}
+
+.card-hoverable .cardScalable:active {
+  transform: scale(0.985);
+  transition-duration: var(--la-fast);
+}
+
+/* --- Footer text --------------------------------------------------------- */
+.cardFooter,
+.cardText {
+  padding-inline: 0.15em;
+}
+
+.cardText-first,
+.cardText:not(.cardText-secondary) {
+  color: var(--la-text);
+  font-weight: 550;
+  letter-spacing: var(--la-tracking-tight);
+}
+
+.cardText-secondary {
+  color: var(--la-text-dim);
+  font-weight: 450;
+}
+
+.innerCardFooter,
+.chapterThumbTextContainer {
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.85), transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  border-radius: 0 0 var(--la-r-lg) var(--la-r-lg);
+  padding: 1.6em 0.7em 0.5em;
+}
+
+/* --- Overlay controls ---------------------------------------------------
+   Floating glass buttons over artwork. These are the smallest panes in the
+   theme, so they get the thin material and a full-round radius. */
+.cardOverlayContainer {
+  border-radius: inherit;
+}
+
+.cardOverlayContainer::after {
+  background: linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.55),
+    rgba(0, 0, 0, 0.1) 45%,
+    transparent
+  );
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--la-normal) var(--la-ease);
+}
+
+.card-hoverable:hover .cardOverlayContainer::after {
+  opacity: 1;
+}
+
+.cardOverlayButton,
+.cardOverlayFab-primary,
+.listItemImageButton {
+  background-color: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(14px) saturate(180%) brightness(1.15);
+  backdrop-filter: blur(14px) saturate(180%) brightness(1.15);
+  border: none;
+  border-radius: var(--la-r-pill);
+  box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
+  color: #fff;
+  transition:
+    background-color var(--la-fast) var(--la-ease-out),
+    transform var(--la-fast) var(--la-ease-out);
+}
+
+.cardOverlayFab-primary:hover,
+.cardOverlayButton:hover,
+.listItemImageButton:hover {
+  background-color: var(--la-accent);
+  color: var(--la-accent-text);
+  transform: scale(1.08);
+}
+
+.cardOverlayFab-primary:active,
+.cardOverlayButton:active {
+  transform: scale(0.94);
+}
+
+/* --- Indicators --------------------------------------------------------- */
+.cardIndicators {
+  gap: 0.3em;
+  padding: 0.5em;
+}
+
+.indicator,
+.countIndicator,
+.playedIndicator,
+.videoIndicator,
+.fullSyncIndicator,
+.mediaSourceIndicator,
+.filterIndicator {
+  background: rgba(255, 255, 255, 0.2);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  backdrop-filter: blur(12px) saturate(180%);
+  border: none;
+  border-radius: var(--la-r-pill);
+  box-shadow: var(--la-edge-soft);
+  color: #fff;
+  font-weight: 600;
+  min-height: 1.55em;
+  min-width: 1.55em;
+}
+
+.playedIndicator {
+  background: var(--la-accent);
+  color: var(--la-accent-text);
+}
+
+/* --- Progress ----------------------------------------------------------- */
+.itemProgressBar:not(.backgroundProgress):not(.playbackProgress):not(.transcodingProgress) {
+  height: 0.32em;
+  margin: 0.3em 0.55em;
+  border-radius: var(--la-r-pill);
+  background: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.itemProgressBarForeground {
+  background: var(--la-accent);
+  border-radius: var(--la-r-pill);
+  box-shadow: 0 0 8px var(--la-accent-glow);
+}
+
+/* --- Section headers ---------------------------------------------------- */
+.sectionTitleContainer {
+  align-items: center;
+  gap: 0.5em;
+}
+
+.sectionTitleTextButton {
+  border-radius: var(--la-r-sm);
+  color: var(--la-text);
+  padding: 0.2em 0.1em;
+  transition: color var(--la-fast) var(--la-ease-out);
+}
+
+.sectionTitleTextButton:hover {
+  color: #fff;
+}
+
+.sectionTitleTextButton > .material-icons {
+  color: var(--la-text-faint);
+  transition: transform var(--la-fast) var(--la-ease-out);
+}
+
+.sectionTitleTextButton:hover > .material-icons {
+  transform: translateX(0.15em);
+}
+
+/* --- Horizontal scroll buttons ------------------------------------------ */
+.emby-scrollbuttons {
+  gap: 0.4em;
+}
+
+.emby-scrollbuttons-button {
+  background-color: var(--la-fill);
+  -webkit-backdrop-filter: var(--la-material-thin);
+  backdrop-filter: var(--la-material-thin);
+  border-radius: var(--la-r-pill);
+  box-shadow: var(--la-edge-soft);
+}
+
+.emby-scrollbuttons-button:hover {
+  background-color: var(--la-fill-hover);
+}

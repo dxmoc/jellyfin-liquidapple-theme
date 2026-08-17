@@ -1,0 +1,78 @@
+/* ============================================================================
+   09 — LOGIN
+   A single glass card centred on the ambient mesh. Set --la-login-bg to an
+   image url() in your Custom CSS to put artwork behind it — that is when the
+   material earns its keep.
+   ========================================================================== */
+
+:root {
+  --la-login-bg: none;
+}
+
+#loginPage,
+#quickConnectPreferencesPage {
+  background: transparent;
+}
+
+#loginPage::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--la-login-bg);
+  background-size: cover;
+  background-position: center;
+  filter: saturate(120%) brightness(0.5) blur(2px);
+  transform: scale(1.05);
+}
+
+.manualLoginForm,
+.visualLoginForm {
+  position: relative;
+  width: 100%;
+  max-width: 27em;
+  margin: 3.5em auto;
+  padding: 2.2em 2em;
+  border: none;
+  border-radius: var(--la-r-2xl);
+  background: var(--la-fill-thick);
+  -webkit-backdrop-filter: var(--la-material-thick);
+  backdrop-filter: var(--la-material-thick);
+  box-shadow: var(--la-edge), var(--la-shadow-lg);
+  animation: la-sheet-in var(--la-slow) var(--la-ease) both;
+}
+
+.visualLoginForm {
+  max-width: 46em;
+}
+
+.manualLoginForm .sectionTitle,
+.visualLoginForm > h1 {
+  font-size: 1.5em;
+  font-weight: 650;
+  letter-spacing: var(--la-tracking-display);
+  margin: 0 0 1.2em;
+  text-align: center;
+}
+
+.manualLoginForm .emby-button.block,
+.manualLoginForm .raised.block {
+  margin-top: 0.6em;
+}
+
+#divUsers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4em;
+}
+
+#divUsers .squareCard .cardScalable {
+  border-radius: var(--la-r-xl);
+}
+
+#txtLoginDisclaimer {
+  color: var(--la-text-faint);
+  font-size: 0.88em;
+  text-align: center;
+}

@@ -1,0 +1,203 @@
+/* ============================================================================
+   01 — BASE
+   Page ground, ambient mesh, backdrop treatment, typography, scrollbars.
+   ========================================================================== */
+
+/* --- Where the ground colour may live ------------------------------------
+   jellyfin-web inserts .backdropContainer as body's first child at z-index -1.
+   Painting order puts the root's background below that, but body's own
+   background — and every in-flow wrapper's — above it. So an opaque colour on
+   body or .mainAnimatedPages hides the artwork completely.
+
+   Only the root element carries the ground colour. .backgroundContainer has no
+   z-index of its own (see jellyfin-web src/styles/site.scss) and therefore also
+   paints above the backdrop, so it may only be filled when jellyfin has told us
+   there is no artwork to hide, via .withBackdrop. */
+html {
+  background-color: var(--la-ground);
+}
+
+body,
+.backdropContainer,
+.mainAnimatedPages,
+.backgroundContainer.withBackdrop {
+  background-color: transparent;
+}
+
+.backgroundContainer:not(.withBackdrop) {
+  background-color: var(--la-ground);
+}
+
+html,
+body {
+  font-family: var(--la-font);
+  font-synthesis-weight: none;
+  letter-spacing: var(--la-tracking-tight);
+  color: var(--la-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* The ambient mesh. Fixed so it does not scroll with content — the glass should
+   feel like it moves across a static light source, not with it.
+
+   Every layer here must stay translucent. An opaque stop anywhere in this stack
+   paints over the backdrop artwork, which sits behind it; the ground colour
+   comes from .backgroundContainer's background-color, not from this pseudo. */
+.backgroundContainer:not(.backgroundContainer-transparent)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--la-mesh-opacity);
+  background:
+    radial-gradient(78em 52em at 12% -8%, var(--la-mesh-a), transparent 62%),
+    radial-gradient(64em 48em at 96% 8%, var(--la-mesh-b), transparent 58%),
+    radial-gradient(72em 60em at 50% 108%, var(--la-mesh-c), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 45%);
+  transition: opacity var(--la-slow) var(--la-ease);
+}
+
+/* Artwork supplies the colour on detail pages, so the mesh steps back. */
+.backgroundContainer.withBackdrop {
+  --la-mesh-opacity: 0.35;
+}
+
+/* --- Backdrop artwork ------------------------------------------------------
+   Softened and pushed back a little: full-contrast artwork behind translucent
+   chrome turns into noise, and the blur gives the glass something smooth to
+   refract. Masked at the bottom so content scrolls out of the image rather
+   than over a hard edge. */
+.backdropImage {
+  filter: saturate(122%) brightness(0.72) blur(2px);
+  transform: scale(1.04);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 88%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 88%);
+}
+
+/* Substituted for jellyfin's own backdrop-fadein, which this class carries.
+   Keeping it on the fade class rather than .backdropImage leaves the resting
+   state above intact when no animation runs. */
+.backdropImageFadeIn {
+  animation: la-backdrop-in var(--la-slow) var(--la-ease) both;
+}
+
+.layout-mobile .backdropImage {
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 22%, transparent 62%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 22%, transparent 62%);
+}
+
+@keyframes la-backdrop-in {
+  from {
+    opacity: 0;
+    transform: scale(1.09);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+/* --- Typography ----------------------------------------------------------- */
+
+h1,
+h2,
+h3,
+.sectionTitle,
+.pageTitle,
+.formDialogHeaderTitle {
+  font-family: var(--la-font);
+  font-weight: 600;
+  letter-spacing: var(--la-tracking-display);
+  color: var(--la-text);
+}
+
+h1,
+.pageTitle {
+  font-weight: 700;
+}
+
+.sectionTitle {
+  font-size: 1.32em;
+  font-weight: 650;
+  opacity: 1;
+}
+
+.secondaryText,
+.listItemBodyText.secondary,
+.cardText-secondary,
+.mediaInfoItem,
+.itemMiscInfo,
+.fieldDescription {
+  color: var(--la-text-dim);
+  letter-spacing: 0;
+}
+
+.tagline {
+  color: var(--la-text-dim);
+  font-style: normal;
+  font-weight: 450;
+}
+
+a,
+.button-link {
+  color: var(--la-text);
+  text-decoration-color: var(--la-text-faint);
+  text-underline-offset: 0.2em;
+  transition: color var(--la-fast) var(--la-ease-out),
+    text-decoration-color var(--la-fast) var(--la-ease-out);
+}
+
+a:hover,
+.button-link:hover {
+  color: #fff;
+  text-decoration-color: currentColor;
+}
+
+::selection {
+  background: var(--la-accent);
+  color: var(--la-accent-text);
+}
+
+/* --- Focus ---------------------------------------------------------------
+   Apple rings the element rather than outlining it: a soft halo, no hard box. */
+:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--la-ground),
+    0 0 0 4px var(--la-focus),
+    0 0 14px 0 var(--la-accent-glow);
+}
+
+/* --- Scrollbars ----------------------------------------------------------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.20) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border: 2px solid transparent;
+  border-radius: var(--la-r-pill);
+  background-clip: content-box;
+  transition: background var(--la-fast) var(--la-ease-out);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.34);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

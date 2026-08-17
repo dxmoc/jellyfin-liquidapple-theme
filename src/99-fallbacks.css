@@ -1,0 +1,135 @@
+/* ============================================================================
+   99 — FALLBACKS
+   Loaded last so it wins the cascade. Four escape hatches:
+
+     no backdrop-filter      → the fills are far too sheer to read on their own
+     Reduce Transparency     → Apple's own accessibility setting, honoured here
+     Reduce Motion           → no springs, no sheet animations
+     TV clients              → blur is a slideshow on Android TV / Fire TV boxes
+
+   Each one swaps tokens rather than re-declaring components, so the whole
+   theme degrades in one place.
+   ========================================================================== */
+
+/* --- Opaque token set, reused by every fallback below --------------------- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --la-material: none;
+    --la-material-thin: none;
+    --la-material-thick: none;
+    --la-refract-blur: 0px;
+    --la-fill: rgba(255, 255, 255, 0.09);
+    --la-fill-hover: rgba(255, 255, 255, 0.16);
+    --la-fill-thick: #1a1c24;
+    --la-fill-chrome: #14161c;
+  }
+}
+
+/* --- Reduce Transparency ------------------------------------------------- */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --la-material: none;
+    --la-material-thin: none;
+    --la-material-thick: none;
+    --la-refract-blur: 0px;
+    --la-mesh-opacity: 0;
+    --la-fill: rgba(255, 255, 255, 0.10);
+    --la-fill-hover: rgba(255, 255, 255, 0.18);
+    --la-fill-thick: #1a1c24;
+    --la-fill-chrome: #14161c;
+    --la-ground: #0b0c10;
+  }
+
+  .backdropImage {
+    opacity: 0.28;
+  }
+
+  .skinHeader-blurred:not(.osdHeader)::before,
+  .dialog:not(.dialog-fullscreen)::before,
+  .mainDrawer::before {
+    display: none;
+  }
+}
+
+/* --- Increased contrast ------------------------------------------------- */
+@media (prefers-contrast: more) {
+  :root {
+    --la-rim: rgba(255, 255, 255, 0.34);
+    --la-rim-top: rgba(255, 255, 255, 0.6);
+    --la-rim-hover: rgba(255, 255, 255, 0.5);
+    --la-text-dim: rgba(255, 255, 255, 0.82);
+    --la-text-faint: rgba(255, 255, 255, 0.66);
+    --la-fill: rgba(255, 255, 255, 0.14);
+    --la-fill-chrome: rgba(10, 11, 15, 0.9);
+  }
+}
+
+/* --- Reduce Motion ------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  :root {
+    --la-lift: 0px;
+  }
+
+  .card-hoverable:hover .cardScalable,
+  .card-hoverable:hover .visualCardBox,
+  #scenesContent .cardScalable:hover {
+    transform: none;
+  }
+}
+
+/* --- TV clients ---------------------------------------------------------
+   Stacked backdrop-filters drop an Android TV box to single digits, and the
+   pointer-driven hover states are meaningless with a D-pad anyway. Solid
+   surfaces, and a focus ring loud enough to find from the sofa. */
+.layout-tv {
+  --la-material: none;
+  --la-material-thin: none;
+  --la-material-thick: none;
+  --la-refract-blur: 0px;
+  --la-fill-thick: #191b23;
+  --la-fill-chrome: #14161c;
+  --la-mesh-opacity: 0.5;
+  --la-lift: 0px;
+}
+
+.layout-tv .backdropImage {
+  filter: saturate(120%) brightness(0.6);
+}
+
+.layout-tv .show-focus:focus,
+.layout-tv .show-animation:focus,
+.layout-tv .emby-select-focusscale:focus {
+  outline: none;
+  transform: scale(1.06);
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    0 0 0 3px rgba(255, 255, 255, 0.7),
+    var(--la-shadow-lift);
+}
+
+.layout-tv .card:focus .cardScalable {
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    var(--la-shadow-lift);
+}
+
+/* Rendering the decorative layers on TV costs frames for nothing. */
+.layout-tv .skinHeader-blurred::before,
+.layout-tv .skinHeader-blurred::after,
+.layout-tv .mainDrawer::before,
+.layout-tv .mainDrawer::after,
+.layout-tv .dialog::before,
+.layout-tv .dialog::after,
+.layout-tv .actionSheetContent::after,
+.layout-tv .btnPlay.detailButton::after {
+  display: none;
+}

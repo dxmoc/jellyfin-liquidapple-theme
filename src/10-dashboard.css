@@ -1,0 +1,177 @@
+/* ============================================================================
+   10 — DASHBOARD
+   The admin area is part React/MUI, part legacy Jellyfin markup, so it needs
+   both sets of selectors. Same material, calmer: nobody wants a translucent
+   log table.
+   ========================================================================== */
+
+.dashboardDocument .content-primary {
+  background: transparent;
+}
+
+.dashboardSection,
+.serverInfo {
+  border: none;
+  border-radius: var(--la-r-lg);
+  background: var(--la-fill);
+  -webkit-backdrop-filter: var(--la-material-thin);
+  backdrop-filter: var(--la-material-thin);
+  box-shadow: var(--la-edge-soft);
+  padding: 1.1em 1.3em;
+}
+
+.dashboardActionsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.activeSession {
+  border: none;
+  border-radius: var(--la-r-lg);
+  background: var(--la-fill);
+  -webkit-backdrop-filter: var(--la-material-thin);
+  backdrop-filter: var(--la-material-thin);
+  box-shadow: var(--la-edge-soft);
+  overflow: hidden;
+}
+
+.dashboardFooter {
+  background: transparent;
+  border-top: 1px solid var(--la-rim);
+  color: var(--la-text-faint);
+  font-size: 0.85em;
+}
+
+.dashboardFooter::after {
+  content: "LiquidApple " var(--la-version);
+  display: block;
+  color: var(--la-text-faint);
+  padding-top: 0.4em;
+}
+
+/* --- MUI ---------------------------------------------------------------- */
+.MuiPaper-root,
+.MuiPaper-elevation1,
+.MuiPaper-elevation2 {
+  background-color: var(--la-fill) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: var(--la-material-thin);
+  backdrop-filter: var(--la-material-thin);
+  border: none !important;
+  border-radius: var(--la-r-lg) !important;
+  box-shadow: var(--la-edge-soft) !important;
+  color: var(--la-text) !important;
+}
+
+.MuiList-root.MuiMenu-list {
+  --la-fill-chrome: rgba(22, 24, 32, 0.74);
+  border-radius: var(--la-r-lg);
+  padding: 0.3em;
+}
+
+.MuiMenuItem-root,
+.MuiList-root > a,
+.MuiListItem-root > a,
+.MuiListItem-root > div {
+  border-radius: var(--la-r-sm);
+  color: var(--la-text);
+  transition: background-color var(--la-fast) var(--la-ease-out);
+}
+
+.MuiMenuItem-root:hover,
+.MuiList-root > a:hover,
+.MuiListItem-root > a:hover {
+  background-color: var(--la-fill-hover);
+}
+
+.Mui-selected {
+  background-color: var(--la-fill-active) !important;
+  font-weight: 600;
+}
+
+.MuiTabs-indicator {
+  display: none;
+}
+
+.MuiTabs-flexContainer > .MuiButtonBase-root {
+  border-radius: var(--la-r-pill);
+  color: var(--la-text-dim);
+  font-family: var(--la-font);
+  font-weight: 550;
+  min-height: 2.4em;
+  text-transform: none;
+}
+
+.MuiTabs-flexContainer > .MuiButtonBase-root.Mui-selected {
+  background-color: var(--la-accent);
+  color: var(--la-accent-text) !important;
+}
+
+.MuiToggleButtonGroup-grouped {
+  border: 1px solid var(--la-rim) !important;
+  border-radius: var(--la-r-pill) !important;
+  color: var(--la-text-dim) !important;
+  text-transform: none;
+}
+
+.MuiToggleButtonGroup-grouped.Mui-selected {
+  background-color: var(--la-accent) !important;
+  color: var(--la-accent-text) !important;
+}
+
+.MuiButtonBase-root.MuiIconButton-root {
+  border-radius: var(--la-r-pill);
+  color: var(--la-text-dim);
+}
+
+.MuiButtonBase-root.MuiIconButton-root:hover {
+  background-color: var(--la-fill-hover);
+  color: var(--la-text);
+}
+
+.MuiTableRow-root.MuiTableRow-head,
+.MuiTableCell-head {
+  background-color: transparent !important;
+  border-bottom: 1px solid var(--la-rim) !important;
+  color: var(--la-text-faint) !important;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.MuiTableCell-root {
+  border-bottom: 1px solid var(--la-rim) !important;
+  color: var(--la-text) !important;
+}
+
+.MuiTableBody-root .MuiTableRow-root:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.035);
+}
+
+.MuiAvatar-circular {
+  border-radius: var(--la-r-pill);
+  box-shadow: var(--la-edge-soft);
+}
+
+/* --- Metadata editor -------------------------------------------------- */
+.editorNode,
+.metadataSidebarIcon {
+  color: var(--la-text-dim);
+}
+
+.jstree-default .jstree-wholerow-clicked,
+.jstree-default .jstree-wholerow-hovered {
+  background: var(--la-fill-hover);
+  border-radius: var(--la-r-sm);
+  box-shadow: none;
+}
+
+/* --- Preferences menu ------------------------------------------------- */
+#myPreferencesMenuPage .listItem {
+  border-radius: var(--la-r-md);
+}
+
+#myPreferencesMenuPage .listItemIcon {
+  color: var(--la-text-dim);
+}

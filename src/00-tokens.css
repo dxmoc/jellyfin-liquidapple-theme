@@ -1,0 +1,123 @@
+/* ============================================================================
+   00 — TOKENS
+   Every tunable value lives here. To re-skin the theme, redefine any of these
+   in Jellyfin's Custom CSS box *after* the @import — no need to fork.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+  --la-version: "__VERSION__";
+
+  /* --- Ambient ground ------------------------------------------------------
+     Glass has nothing to bend when it sits on flat black, so the page carries
+     a faint colour mesh. It is what makes the material read as translucent on
+     pages that have no backdrop artwork. */
+  --la-ground: #06070a;
+  --la-ground-raised: #0e1015;
+  --la-mesh-a: rgba(122, 142, 255, 0.11);
+  --la-mesh-b: rgba(255, 128, 196, 0.07);
+  --la-mesh-c: rgba(88, 220, 255, 0.06);
+  --la-mesh-opacity: 1;
+
+  /* --- Glass material ------------------------------------------------------
+     Apple's glass amplifies the colour behind it: heavy blur, saturation well
+     above 100%, and a slight brightness lift. Drop --la-saturate to 100% for
+     a plainer frosted look. */
+  --la-blur: 22px;
+  --la-blur-thin: 12px;
+  --la-blur-thick: 44px;
+  --la-saturate: 180%;
+  --la-brightness: 108%;
+  --la-material: blur(var(--la-blur)) saturate(var(--la-saturate))
+    brightness(var(--la-brightness));
+  --la-material-thin: blur(var(--la-blur-thin)) saturate(var(--la-saturate));
+  --la-material-thick: blur(var(--la-blur-thick)) saturate(var(--la-saturate))
+    brightness(var(--la-brightness));
+
+  /* Fills. "chrome" sits over scrolling content and needs more body than the
+     interactive fills, which float on top of already-glassy surfaces. */
+  --la-fill: rgba(255, 255, 255, 0.07);
+  --la-fill-hover: rgba(255, 255, 255, 0.13);
+  --la-fill-active: rgba(255, 255, 255, 0.19);
+  --la-fill-sunken: rgba(0, 0, 0, 0.24);
+  --la-fill-thick: rgba(26, 28, 36, 0.60);
+  --la-fill-chrome: rgba(16, 18, 24, 0.52);
+
+  /* --- Rim light -----------------------------------------------------------
+     A pane of glass is lit from above and shadowed below. This one composite
+     shadow does most of the visual work in the whole theme. */
+  --la-rim: rgba(255, 255, 255, 0.13);
+  --la-rim-top: rgba(255, 255, 255, 0.38);
+  --la-rim-bottom: rgba(0, 0, 0, 0.30);
+  --la-rim-hover: rgba(255, 255, 255, 0.26);
+  --la-edge:
+    inset 0 1px 0 0 var(--la-rim-top),
+    inset 0 -1px 0 0 var(--la-rim-bottom),
+    inset 0 0 0 1px var(--la-rim);
+  --la-edge-soft:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 0 1px var(--la-rim);
+
+  /* --- Edge refraction -----------------------------------------------------
+     The signature Liquid Glass trick: the outer few pixels of a pane bend and
+     brighten what is behind them. Faked with a masked ring that carries its
+     own backdrop-filter. Set --la-refract-blur to 0px to switch it off. */
+  --la-refract-blur: 6px;
+  --la-refract-width: 7px;
+  --la-refract-bright: 1.4;
+
+  /* --- Depth --------------------------------------------------------------- */
+  --la-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 8px rgba(0, 0, 0, 0.20);
+  --la-shadow-md: 0 2px 6px rgba(0, 0, 0, 0.30), 0 10px 30px rgba(0, 0, 0, 0.34);
+  --la-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.34), 0 24px 60px rgba(0, 0, 0, 0.44);
+  --la-shadow-lift: 0 6px 16px rgba(0, 0, 0, 0.36), 0 32px 72px rgba(0, 0, 0, 0.50);
+
+  /* --- Radii ---------------------------------------------------------------
+     Concentric: a child's radius should be the parent's minus the gap. */
+  --la-r-xs: 8px;
+  --la-r-sm: 12px;
+  --la-r-md: 16px;
+  --la-r-lg: 22px;
+  --la-r-xl: 28px;
+  --la-r-2xl: 34px;
+  --la-r-pill: 999px;
+
+  /* --- Type ---------------------------------------------------------------
+     SF Pro on Apple hardware, Inter everywhere else — the closest widely
+     available substitute for SF's proportions. */
+  --la-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Inter", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --la-tracking-tight: -0.021em;
+  --la-tracking-display: -0.032em;
+  --la-text: rgba(255, 255, 255, 0.96);
+  --la-text-dim: rgba(255, 255, 255, 0.62);
+  --la-text-faint: rgba(255, 255, 255, 0.40);
+  --la-text-invert: #0a0a0c;
+
+  /* --- Accent -------------------------------------------------------------
+     Neutral on purpose. Apple's default glass is colourless and lets the
+     content underneath supply the colour; the accent only marks the one
+     primary action on screen. Set --la-accent to any colour to tint it. */
+  --la-accent: #f5f5f7;
+  --la-accent-text: #0a0a0c;
+  --la-accent-glow: rgba(255, 255, 255, 0.28);
+  --la-danger: #ff453a;
+  --la-warn: #ff9f0a;
+  --la-success: #30d158;
+  --la-focus: rgba(255, 255, 255, 0.90);
+
+  /* --- Motion -------------------------------------------------------------
+     --la-ease is the curve iOS uses to present a sheet: fast out of the gate,
+     long settle. --la-ease-out is for hover states, which need to feel
+     immediate rather than springy. */
+  --la-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --la-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --la-fast: 160ms;
+  --la-normal: 280ms;
+  --la-slow: 440ms;
+
+  /* --- Layout ------------------------------------------------------------- */
+  --la-header-h: 4.2em;
+  --la-gutter: 1.6em;
+  --la-lift: -4px; /* how far a hovered card rises */
+}

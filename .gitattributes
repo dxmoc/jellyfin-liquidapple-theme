@@ -1,0 +1,4 @@
+# dist/ is served straight to browsers by jsDelivr, so keep line endings LF
+# regardless of who builds it and on which platform.
+* text=auto eol=lf
+*.png binary

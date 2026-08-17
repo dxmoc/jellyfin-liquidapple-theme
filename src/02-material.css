@@ -1,0 +1,172 @@
+/* ============================================================================
+   02 — MATERIAL
+   The glass itself. Jellyfin's DOM is fixed, so there are no utility classes to
+   apply — instead the recipe is declared once against a group of surfaces, and
+   later files only adjust geometry. Two tiers:
+
+     chrome    thick glass that floats over scrolling content
+     control   thinner glass for things you press, sitting on top of chrome
+   ========================================================================== */
+
+/* --- Tier 1: chrome ------------------------------------------------------- */
+.skinHeader-blurred:not(.osdHeader),
+.skinHeader-withBackground:not(.osdHeader),
+.mainDrawer,
+.drawer-open,
+.dialog:not(.dialog-fullscreen),
+.actionSheetContent,
+.toast,
+.upNextContainer,
+.nowPlayingBar,
+.sliderBubble,
+.videoOsdBottom.videoOsdBottom-maincontrols,
+.playerStats,
+.alphaPicker-vertical,
+.MuiDrawer-paper,
+.MuiAppBar-root,
+.MuiList-root.MuiMenu-list {
+  background: var(--la-fill-chrome);
+  -webkit-backdrop-filter: var(--la-material);
+  backdrop-filter: var(--la-material);
+  border: none;
+  box-shadow: var(--la-edge), var(--la-shadow-md);
+}
+
+/* --- Tier 2: controls ----------------------------------------------------- */
+.emby-button.raised,
+.button-alt,
+.emby-button.block,
+.fab,
+.detailButton:not(.btnPlay),
+.emby-tab-button,
+.alphaPickerButton,
+.emby-input,
+.emby-textarea,
+.emby-select,
+.emby-select-withcolor,
+.selectContainer .selectArrowContainer,
+.itemExternalLinks.focuscontainer-x > .button-link,
+.itemTags > a,
+.mediaInfoItem,
+.skip-button,
+.paperList,
+.readOnlyContent,
+.collapseContent,
+.infoBanner,
+.playerStats-stats,
+.listItemIcon:not(.listItemIcon-transparent) {
+  background-color: var(--la-fill);
+  -webkit-backdrop-filter: var(--la-material-thin);
+  backdrop-filter: var(--la-material-thin);
+  border: none;
+  box-shadow: var(--la-edge-soft);
+  color: var(--la-text);
+  transition:
+    background-color var(--la-fast) var(--la-ease-out),
+    box-shadow var(--la-fast) var(--la-ease-out),
+    transform var(--la-fast) var(--la-ease-out),
+    color var(--la-fast) var(--la-ease-out);
+}
+
+/* --- Edge refraction -----------------------------------------------------
+   A ring hugging the outer edge of a pane, carrying its own backdrop-filter so
+   the last few pixels bend and brighten. This is what separates "frosted" from
+   "liquid". Kept to the big surfaces — one masked backdrop-filter per surface
+   is affordable, one per card is not.
+
+   The ring is built with the padding-box/content-box mask-composite trick, so
+   it needs both `mask-composite` and `backdrop-filter` to be supported before
+   it is worth drawing at all. */
+@supports (backdrop-filter: blur(1px)) and (mask-composite: exclude) {
+  .skinHeader-blurred:not(.osdHeader)::after,
+  .mainDrawer::after,
+  .dialog:not(.dialog-fullscreen)::after,
+  .actionSheetContent::after,
+  .toast::after,
+  .upNextContainer::after,
+  .btnPlay.detailButton::after,
+  .sectionTabs .emby-tabs::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    padding: var(--la-refract-width);
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(var(--la-refract-blur))
+      brightness(var(--la-refract-bright)) saturate(200%);
+    backdrop-filter: blur(var(--la-refract-blur))
+      brightness(var(--la-refract-bright)) saturate(200%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+  }
+
+  .actionSheetContent,
+  .btnPlay.detailButton,
+  .sectionTabs .emby-tabs,
+  .toast {
+    position: relative;
+  }
+}
+
+/* --- Specular sheen ------------------------------------------------------
+   A single soft highlight raking across the top of a pane. Real glass catches
+   the light unevenly; a flat fill reads as plastic. */
+.skinHeader-blurred:not(.osdHeader)::before,
+.dialog:not(.dialog-fullscreen)::before,
+.mainDrawer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    168deg,
+    rgba(255, 255, 255, 0.13) 0%,
+    rgba(255, 255, 255, 0.04) 26%,
+    transparent 52%
+  );
+}
+
+/* Keep real content above the two decorative layers. */
+.dialog:not(.dialog-fullscreen) > *,
+.mainDrawer > *,
+.skinHeader-blurred:not(.osdHeader) > * {
+  position: relative;
+  z-index: 3;
+}
+
+/* --- Shared interaction --------------------------------------------------
+   Press feedback is a scale-down, the way iOS controls behave, rather than a
+   colour change alone. */
+.emby-button.raised:hover,
+.button-alt:hover,
+.fab:hover,
+.emby-tab-button:hover,
+.alphaPickerButton:hover,
+.itemExternalLinks.focuscontainer-x > .button-link:hover,
+.itemTags > a:hover,
+.skip-button:hover {
+  background-color: var(--la-fill-hover);
+  box-shadow:
+    inset 0 1px 0 0 var(--la-rim-hover),
+    inset 0 0 0 1px var(--la-rim-hover),
+    var(--la-shadow-sm);
+}
+
+.emby-button:active,
+.raised:active,
+.fab:active,
+.button-alt:active,
+.emby-tab-button:active,
+.alphaPickerButton:active,
+.detailButton:active,
+.listItem:active,
+.navMenuOption:active,
+.card:active .cardScalable {
+  transform: scale(0.96);
+}
