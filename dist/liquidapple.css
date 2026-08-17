@@ -125,10 +125,27 @@
   --la-normal: 280ms;
   --la-slow: 440ms;
 
+  /* A bezier can only ease, never overshoot — so a card that "pops" and a sheet
+     that settles need a real damped spring. These are the SwiftUI spring model
+     (the one anime.js exposes as its spring easing) sampled into linear(),
+     retuned from its 1.3s settle to something a UI can use: --la-spring is
+     zeta 0.52 / omega 26, --la-spring-sheet is the calmer zeta 0.72 / omega 20.
+     The durations are the settle times and belong to the curves — changing one
+     without the other breaks the physics. Bezier values here are the fallback;
+     the @supports block below swaps in the springs where linear() exists. */
+  --la-spring: var(--la-ease);
+  --la-spring-sheet: var(--la-ease);
+  --la-spring-t: var(--la-normal);
+  --la-spring-sheet-t: var(--la-normal);
+
   /* --- Layout ------------------------------------------------------------- */
   --la-header-h: 4.2em;
   --la-gutter: 1.6em;
   --la-lift: -4px; /* how far a hovered card rises */
+  /* Room the item grid has to keep clear for the alpha picker. The glass pill
+     is wider than jellyfin's bare picker, and jellyfin's own reservation is a
+     percentage — too little on a phone. See 06-controls.css. */
+  --la-alphapicker-clear: 46px;
 
   /* --- Detail hero --------------------------------------------------------
      The item page is a hero: artwork takes most of the viewport and the info
@@ -159,6 +176,28 @@
   /* Shared left edge for hero text, body copy and the section rows. Raise to
      ~33vw together with --la-detail-poster: block. */
   --la-hero-inset: var(--la-gutter);
+}
+
+/* linear() is what makes a spring expressible in CSS at all. Old TV webviews do
+   not have it, and an unsupported timing function would invalidate the whole
+   transition — so the springs are an upgrade on top of the beziers above, never
+   the base. Curves are sampled at 24 points; that is dense enough that the
+   overshoot reads as motion rather than as steps. */
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --la-spring: linear(
+      0, 0.1237, 0.3913, 0.6795, 0.9142, 1.0659, 1.1364, 1.1454, 1.1176, 1.0754,
+      1.0346, 1.0038, 0.9856, 0.9786, 0.9795, 0.9846, 0.991, 0.9966, 1.0005,
+      1.0026, 1.0032, 1.0028, 1.002, 1
+    );
+    --la-spring-sheet: linear(
+      0, 0.0775, 0.248, 0.4441, 0.6264, 0.7757, 0.8866, 0.9615, 1.0068, 1.0299,
+      1.038, 1.037, 1.0313, 1.0238, 1.0165, 1.0103, 1.0056, 1.0023, 1.0002,
+      0.9991, 0.9986, 0.9985, 0.9987, 1
+    );
+    --la-spring-t: 480ms;
+    --la-spring-sheet-t: 500ms;
+  }
 }
 
 /* ==== 01-base.css ==== */
@@ -909,8 +948,10 @@ a:hover,
   border-radius: var(--la-r-lg);
   overflow: hidden !important;
   box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
+  /* The lift springs; the shadow does not — a bouncing shadow reads as a bug,
+     and it has to keep up with the card rather than trail it. */
   transition:
-    transform var(--la-normal) var(--la-ease),
+    transform var(--la-spring-t) var(--la-spring),
     box-shadow var(--la-normal) var(--la-ease);
   will-change: transform;
 }
@@ -1892,6 +1933,16 @@ progress,
   padding: 0.4em 0.2em;
 }
 
+/* Turning the picker into a pill made it 30px wide where jellyfin's bare one is
+   20px, and .padded-right-withalphapicker reserves a percentage sized for the
+   bare one — 32px at 430px viewport. The last grid column ended up 3px *under*
+   the fixed picker. Reserve the pill's real width as a floor instead; the
+   percentage still wins on desktop, where it is far larger. */
+.itemsContainer.padded-right-withalphapicker {
+  padding-right: 7.5%; /* jellyfin's own value, for browsers without max() */
+  padding-right: max(7.5%, var(--la-alphapicker-clear));
+}
+
 .alphaPickerButton {
   min-width: 1.9em;
   height: 1.9em;
@@ -1934,7 +1985,7 @@ progress,
   border-radius: var(--la-r-2xl);
   box-shadow: var(--la-edge), var(--la-shadow-lg);
   overflow: hidden;
-  animation: la-sheet-in var(--la-normal) var(--la-ease) both;
+  animation: la-sheet-in var(--la-spring-sheet-t) var(--la-spring-sheet) both;
 }
 
 @keyframes la-sheet-in {
@@ -2043,7 +2094,7 @@ progress,
   border-radius: var(--la-r-xl);
   box-shadow: var(--la-edge), var(--la-shadow-lg);
   padding: 0.9em 1.3em;
-  animation: la-sheet-in var(--la-normal) var(--la-ease) both;
+  animation: la-sheet-in var(--la-spring-sheet-t) var(--la-spring-sheet) both;
 }
 
 .skip-button {
@@ -2381,7 +2432,7 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
   -webkit-backdrop-filter: var(--la-material-thick);
   backdrop-filter: var(--la-material-thick);
   box-shadow: var(--la-edge), var(--la-shadow-lg);
-  animation: la-sheet-in var(--la-slow) var(--la-ease) both;
+  animation: la-sheet-in var(--la-spring-sheet-t) var(--la-spring-sheet) both;
 }
 
 .visualLoginForm {
@@ -2732,6 +2783,12 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
 @media (prefers-reduced-motion: reduce) {
   :root {
     --la-lift: 0px;
+    /* Overshoot is exactly the thing reduce is asking us not to do. Back to a
+       plain ease — the transitions still run, they just no longer bounce. */
+    --la-spring: var(--la-ease-out);
+    --la-spring-sheet: var(--la-ease-out);
+    --la-spring-t: var(--la-fast);
+    --la-spring-sheet-t: var(--la-fast);
   }
 
   /* Entrances: these slide and scale, so they are collapsed to nothing the eye
