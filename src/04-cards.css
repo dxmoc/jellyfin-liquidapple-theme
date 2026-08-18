@@ -232,3 +232,38 @@
 .emby-scrollbuttons-button:hover {
   background-color: var(--la-fill-hover);
 }
+
+/* --- Scroll-driven entrance ----------------------------------------------
+   What anime.js sells as its onScroll observer, the browser now does on its
+   own: a view() timeline drives the animation from the element's position in
+   the viewport instead of from time, so there is no JS, no observer and no
+   scroll listener. Cards lift into place as the row comes up.
+
+   Wrapped twice on purpose. @supports keeps it away from TV webviews, which
+   have neither the feature nor the GPU budget for a few hundred animated
+   cards. The reduced-motion query is the accessibility half — and note this
+   animation is ours, so `none` is safe here: the warning about
+   animation-duration: 1ms applies to jellyfin's own animations, which have
+   animationend listeners hanging off them. This one has none. */
+@keyframes la-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.5em) scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .card {
+      animation: la-card-in linear both;
+      animation-timeline: view();
+      /* Finish well before the card is centred, or the page feels laggy: the
+         motion should be over by the time the eye arrives. */
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}
