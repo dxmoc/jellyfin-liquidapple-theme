@@ -112,6 +112,15 @@
   --la-font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont,
     "Inter", "Segoe UI Variable Display", "Segoe UI Variable",
     system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Item title. ElegantFin's signature is a big, *thin* name — 4em at weight
+     200 with normal tracking — and that, not the typeface, is what reads as
+     "their font": Inter is loaded identically in both. Apple's own titles are
+     the opposite (heavy, tight), so raise the weight and drop the size here if
+     the hero should look more like SF and less like ElegantFin. */
+  --la-title-size: 4em;
+  --la-title-size-mobile: 2em;
+  --la-title-weight: 200;
+  --la-title-tracking: normal;
   --la-tracking-tight: -0.021em;
   --la-tracking-display: -0.032em;
   --la-text: rgba(255, 255, 255, 0.96);
@@ -1229,11 +1238,13 @@ a:hover,
    `bottom: 0`, so on a half-watched item the check/heart/menu row sat right on
    top of the bar — measured 4.8px of overlap, which is the bar's whole height.
    Lift the row clear of it: bar height plus its margin plus the footer's bottom
-   padding. Only where a bar actually exists, or the buttons float for no reason
+   padding, plus room to breathe — clearing it by half a pixel still reads as
+   touching once the buttons carry a blur and a shadow. Only where a bar
+   actually exists, or the buttons float for no reason
    on everything else. */
 @supports selector(:has(*)) {
   .card:has(.itemProgressBar) .cardOverlayButton-br {
-    bottom: 1.15em;
+    bottom: 1.6em;
   }
 }
 
@@ -1381,9 +1392,9 @@ a:hover,
 .nameContainer > h1.parentName {
   font-family: var(--la-font-display);
   font-optical-sizing: auto;
-  font-size: 3.2em;
-  font-weight: 700;
-  letter-spacing: var(--la-tracking-display);
+  font-size: var(--la-title-size);
+  font-weight: var(--la-title-weight);
+  letter-spacing: var(--la-title-tracking);
   line-height: 1.05;
   margin: 0 0 0.3em;
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6);
@@ -1391,7 +1402,7 @@ a:hover,
 
 .layout-mobile .nameContainer > h1.itemName,
 .layout-mobile .nameContainer > h1.parentName {
-  font-size: 1.9em;
+  font-size: var(--la-title-size-mobile);
 }
 
 .itemName.originalTitle,

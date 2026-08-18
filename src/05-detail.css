@@ -141,9 +141,9 @@
 .nameContainer > h1.parentName {
   font-family: var(--la-font-display);
   font-optical-sizing: auto;
-  font-size: 3.2em;
-  font-weight: 700;
-  letter-spacing: var(--la-tracking-display);
+  font-size: var(--la-title-size);
+  font-weight: var(--la-title-weight);
+  letter-spacing: var(--la-title-tracking);
   line-height: 1.05;
   margin: 0 0 0.3em;
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6);
@@ -151,7 +151,7 @@
 
 .layout-mobile .nameContainer > h1.itemName,
 .layout-mobile .nameContainer > h1.parentName {
-  font-size: 1.9em;
+  font-size: var(--la-title-size-mobile);
 }
 
 .itemName.originalTitle,
