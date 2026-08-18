@@ -139,6 +139,7 @@
 /* --- Titles ------------------------------------------------------------- */
 .nameContainer > h1.itemName,
 .nameContainer > h1.parentName {
+  font-family: var(--la-font-display);
   font-size: 3.2em;
   font-weight: 700;
   letter-spacing: var(--la-tracking-display);

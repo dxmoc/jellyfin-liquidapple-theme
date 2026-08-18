@@ -90,6 +90,16 @@
      available substitute for SF's proportions. */
   --la-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     "Inter", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Titles get the *display* optical size of the system face, which is a real
+     second typeface rather than the body font enlarged: SF Pro Display on Apple
+     hardware, Segoe UI Variable Display on Windows. Both ship with the OS —
+     a downloaded face (ElegantFin pulls Inter off Google Fonts) would be an
+     external request, and this theme does not make any. Note that "Inter" in
+     --la-font only ever applies where it is installed locally; on stock Windows
+     the stack falls through to system-ui. */
+  --la-font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont,
+    "Segoe UI Variable Display", "Segoe UI Variable", "Inter Display", "Inter",
+    system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --la-tracking-tight: -0.021em;
   --la-tracking-display: -0.032em;
   --la-text: rgba(255, 255, 255, 0.96);
