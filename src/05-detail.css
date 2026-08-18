@@ -166,6 +166,14 @@
 }
 
 .mediaInfoItem {
+  /* Stock jellyfin gives these no padding at all, so every chip was as tall as
+     whatever it contained: measured 26.1 / 26.8 / 28.1 / 29.7px in one row,
+     which reads as a wobbly line of pills. Own the box instead — one height,
+     content centred, icons sized to the line rather than the other way round. */
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 1.95em;
   padding: 0.28em 0.72em;
   border-radius: var(--la-r-pill);
   font-size: 0.92em;
@@ -174,10 +182,42 @@
   color: var(--la-text);
 }
 
+.mediaInfoItem .material-icons {
+  font-size: 1.15em;
+}
+
+.mediaInfoItem > svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
 .mediaInfoOfficialRating {
   border: 1px solid var(--la-rim-hover);
   background: transparent;
   box-shadow: none;
+}
+
+/* The border sits outside the content box even under border-box, because the
+   line height already fills min-height — so this chip alone came out 1.4px
+   taller. Give the ring its width back out of the padding. */
+.mediaInfoItem.mediaInfoText {
+  padding-block: calc(0.28em - 1px);
+}
+
+/* Jellyfin paints the tomato as a background-image at `0 center` and clears it
+   with `padding-left: 1.5em`. That works when .mediaInfoItem has no padding,
+   which is jellyfin's default — but this is a pill with a 999px radius, so the
+   tomato ended up jammed against the rounded edge. Start the image after the
+   pill's own padding and push the number clear of it. Two classes, because
+   jellyfin's own rule is `[dir="ltr"] .mediaInfoCriticRating` and would
+   otherwise win on specificity. */
+.mediaInfoItem.mediaInfoCriticRating {
+  padding-inline-start: calc(0.72em + 1.2em + 0.36em);
+  background-position: 0.72em center;
+}
+
+[dir="rtl"] .mediaInfoItem.mediaInfoCriticRating {
+  background-position: calc(100% - 0.72em) center;
 }
 
 .starIcon {

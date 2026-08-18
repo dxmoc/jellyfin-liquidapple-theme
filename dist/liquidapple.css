@@ -847,6 +847,17 @@ a:hover,
   overflow: hidden;
 }
 
+/* Jellyfin parks the drawer inline at `left: -<width>` and slides it in with
+   `transform: translateX(<width>)`. The margin above floats the open panel off
+   the edge — but it shifts the *closed* one back on screen by exactly the same
+   amount, leaving a 8px strip of glass down the left of every single page.
+   Cancel it while closed; the open state keeps its inset.
+
+   !important because the transform jellyfin sets is an inline style. */
+.layout-desktop .mainDrawer:not(.drawer-open) {
+  transform: translateX(-0.55em) !important;
+}
+
 .mainDrawer-scrollContainer {
   padding: 0.5em 0.55em 1.4em;
 }
@@ -1332,6 +1343,14 @@ a:hover,
 }
 
 .mediaInfoItem {
+  /* Stock jellyfin gives these no padding at all, so every chip was as tall as
+     whatever it contained: measured 26.1 / 26.8 / 28.1 / 29.7px in one row,
+     which reads as a wobbly line of pills. Own the box instead — one height,
+     content centred, icons sized to the line rather than the other way round. */
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 1.95em;
   padding: 0.28em 0.72em;
   border-radius: var(--la-r-pill);
   font-size: 0.92em;
@@ -1340,10 +1359,42 @@ a:hover,
   color: var(--la-text);
 }
 
+.mediaInfoItem .material-icons {
+  font-size: 1.15em;
+}
+
+.mediaInfoItem > svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
 .mediaInfoOfficialRating {
   border: 1px solid var(--la-rim-hover);
   background: transparent;
   box-shadow: none;
+}
+
+/* The border sits outside the content box even under border-box, because the
+   line height already fills min-height — so this chip alone came out 1.4px
+   taller. Give the ring its width back out of the padding. */
+.mediaInfoItem.mediaInfoText {
+  padding-block: calc(0.28em - 1px);
+}
+
+/* Jellyfin paints the tomato as a background-image at `0 center` and clears it
+   with `padding-left: 1.5em`. That works when .mediaInfoItem has no padding,
+   which is jellyfin's default — but this is a pill with a 999px radius, so the
+   tomato ended up jammed against the rounded edge. Start the image after the
+   pill's own padding and push the number clear of it. Two classes, because
+   jellyfin's own rule is `[dir="ltr"] .mediaInfoCriticRating` and would
+   otherwise win on specificity. */
+.mediaInfoItem.mediaInfoCriticRating {
+  padding-inline-start: calc(0.72em + 1.2em + 0.36em);
+  background-position: 0.72em center;
+}
+
+[dir="rtl"] .mediaInfoItem.mediaInfoCriticRating {
+  background-position: calc(100% - 0.72em) center;
 }
 
 .starIcon {
@@ -1874,17 +1925,27 @@ fieldset {
 }
 
 /* --- Sliders ----------------------------------------------------------- */
+/* The track hangs off a container whose top edge sits exactly on the thumb's
+   centre line, so it has to pull itself up by half its own height. Jellyfin
+   hardcodes that as `margin-top: -1.488px` — half of *its* 3px track. Making the
+   track thicker without restating the margin left the thumb sitting 0.9px below
+   the bar, and ~2.2px off once the hover state grows it. The margin belongs to
+   whoever owns the height. */
 .mdl-slider-background-flex {
   height: 0.32em;
+  margin-top: -0.16em;
   border-radius: var(--la-r-pill);
   background: rgba(255, 255, 255, 0.22);
   overflow: hidden;
-  transition: height var(--la-fast) var(--la-ease-out);
+  transition:
+    height var(--la-fast) var(--la-ease-out),
+    margin-top var(--la-fast) var(--la-ease-out);
 }
 
 .sliderContainer:hover .mdl-slider-background-flex,
 .sliderContainer:active .mdl-slider-background-flex {
   height: 0.5em;
+  margin-top: -0.25em;
 }
 
 .mdl-slider-background-lower {

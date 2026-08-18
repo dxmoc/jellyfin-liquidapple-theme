@@ -163,6 +163,17 @@
   overflow: hidden;
 }
 
+/* Jellyfin parks the drawer inline at `left: -<width>` and slides it in with
+   `transform: translateX(<width>)`. The margin above floats the open panel off
+   the edge — but it shifts the *closed* one back on screen by exactly the same
+   amount, leaving a 8px strip of glass down the left of every single page.
+   Cancel it while closed; the open state keeps its inset.
+
+   !important because the transform jellyfin sets is an inline style. */
+.layout-desktop .mainDrawer:not(.drawer-open) {
+  transform: translateX(-0.55em) !important;
+}
+
 .mainDrawer-scrollContainer {
   padding: 0.5em 0.55em 1.4em;
 }

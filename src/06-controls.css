@@ -290,17 +290,27 @@ fieldset {
 }
 
 /* --- Sliders ----------------------------------------------------------- */
+/* The track hangs off a container whose top edge sits exactly on the thumb's
+   centre line, so it has to pull itself up by half its own height. Jellyfin
+   hardcodes that as `margin-top: -1.488px` — half of *its* 3px track. Making the
+   track thicker without restating the margin left the thumb sitting 0.9px below
+   the bar, and ~2.2px off once the hover state grows it. The margin belongs to
+   whoever owns the height. */
 .mdl-slider-background-flex {
   height: 0.32em;
+  margin-top: -0.16em;
   border-radius: var(--la-r-pill);
   background: rgba(255, 255, 255, 0.22);
   overflow: hidden;
-  transition: height var(--la-fast) var(--la-ease-out);
+  transition:
+    height var(--la-fast) var(--la-ease-out),
+    margin-top var(--la-fast) var(--la-ease-out);
 }
 
 .sliderContainer:hover .mdl-slider-background-flex,
 .sliderContainer:active .mdl-slider-background-flex {
   height: 0.5em;
+  margin-top: -0.25em;
 }
 
 .mdl-slider-background-lower {
