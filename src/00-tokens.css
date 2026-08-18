@@ -167,6 +167,10 @@
   --la-header-h: 4.2em;
   --la-gutter: 1.6em;
   --la-lift: -4px; /* how far a hovered card rises */
+  /* The check / favourite / menu row that floats over a card. Jellyfin packs
+     them edge to edge and flush into the corner; these are the air. */
+  --la-card-overlay-gap: 0.4em;
+  --la-card-overlay-inset: 0.55em;
   /* Room the item grid has to keep clear for the alpha picker. The glass pill
      is wider than jellyfin's bare picker, and jellyfin's own reservation is a
      percentage — too little on a phone. See 06-controls.css. */

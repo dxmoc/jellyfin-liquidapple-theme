@@ -276,6 +276,21 @@
    touching once the buttons carry a blur and a shadow. Only where a bar
    actually exists, or the buttons float for no reason
    on everything else. */
+/* Jellyfin gives this row `bottom: 0` and `[dir] … { right: 0 }`, and no gap
+   at all — the three buttons touch each other and sit hard in the corner.
+   Two classes because jellyfin's inset rule is `[dir="ltr"] .cardOverlayButton-br`
+   (0,2,0) and a single class loses the tie. */
+.card .cardOverlayButton-br {
+  gap: var(--la-card-overlay-gap);
+  right: var(--la-card-overlay-inset);
+  bottom: var(--la-card-overlay-inset);
+}
+
+[dir="rtl"] .card .cardOverlayButton-br {
+  right: auto;
+  left: var(--la-card-overlay-inset);
+}
+
 @supports selector(:has(*)) {
   .card:has(.itemProgressBar) .cardOverlayButton-br {
     bottom: 1.6em;
