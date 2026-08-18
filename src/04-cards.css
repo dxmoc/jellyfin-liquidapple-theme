@@ -46,6 +46,18 @@
 /* --- Hover ---------------------------------------------------------------
    Rise, grow a touch, and pick up more rim light — as if the card came closer
    to the light source. */
+
+/* The lift only works because of this. Jellyfin puts `contain: content` on
+   every card, and content containment includes *paint* — anything drawn outside
+   the card's own box is clipped away. The raised card was therefore sliced off
+   flat along its top edge, hard enough to see next to its rounded neighbours,
+   and only in rows where it mattered. Layout and style containment are the
+   parts worth keeping; paint is the part that has to go. Exactly the fix
+   `.skinHeader` already needed in 03-chrome.css. */
+.card.card-hoverable {
+  contain: layout style;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .card-hoverable:hover .cardScalable,
   .card-hoverable:hover .visualCardBox {
