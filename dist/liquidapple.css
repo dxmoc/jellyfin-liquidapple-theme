@@ -1,4 +1,4 @@
-/*! LiquidApple v0.1.1 - Apple Liquid Glass for Jellyfin
+/*! LiquidApple v0.1.2 - Apple Liquid Glass for Jellyfin
  * https://github.com/dxmoc/jellyfin-liquidapple-theme
  * MIT licensed. Built by build.py - edit src/, not dist/.
  */
@@ -12,7 +12,7 @@
 
 :root {
   color-scheme: dark;
-  --la-version: "0.1.1";
+  --la-version: "0.1.2";
 
   /* --- Ambient ground ------------------------------------------------------
      Glass has nothing to bend when it sits on flat black, so the page carries
@@ -1449,6 +1449,17 @@ a:hover,
       var(--la-shadow-lift);
   }
 
+  /* Exactly one layer may carry the lift. Jellyfin uses `.visualCardBox` for
+     cards that draw their own box — the library grid — and `.cardScalable` for
+     the rest, but in the grid the second sits *inside* the first. Both rules
+     then fired: the poster scaled twice (1.03 x 1.03) and the rim was drawn a
+     second time around the whole box, title included, which read as a pale grey
+     frame sitting over the neighbouring cards. The outer box wins there. */
+  .card-hoverable:hover .visualCardBox .cardScalable {
+    transform: none;
+    box-shadow: none;
+  }
+
   .card-hoverable:hover .cardText-first {
     color: #fff;
   }
@@ -1585,6 +1596,19 @@ a:hover,
   background-color: var(--la-accent);
   color: var(--la-accent-text);
   transform: scale(1.08);
+}
+
+/* The library grid gets a bigger play button than the home rows do. Its cards
+   are simply wider, and the size that reads right there lands on the corner
+   controls in a row: measured at 900px wide, a 2.75em button overlapped the
+   check/heart/menu row by 24px. Jellyfin names the two layouts apart —
+   `.overflowPortraitCard` and friends are the rows, the plain ones are the
+   grid — so the token can differ by layout instead of being one compromise. */
+.portraitCard,
+.backdropCard,
+.squareCard,
+.bannerCard {
+  --la-card-fab-size: 2.75em;
 }
 
 /* Jellyfin sizes the play button through `.cardOverlayContainer >
