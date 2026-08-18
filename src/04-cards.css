@@ -139,6 +139,21 @@
   transform: scale(1.08);
 }
 
+/* Jellyfin sizes the play button through `.cardOverlayContainer >
+   .cardOverlayFab-primary` — a child combinator, so a single class loses the
+   tie and the button stayed 58px. At that size it sits on top of the corner
+   button row on every card narrower than ~330px. Shrink both. */
+.cardOverlayContainer > .cardOverlayFab-primary {
+  font-size: 110%;
+  width: var(--la-card-fab-size);
+  height: var(--la-card-fab-size);
+}
+
+.cardOverlayButton-br .cardOverlayButton {
+  width: var(--la-card-overlay-btn);
+  height: var(--la-card-overlay-btn);
+}
+
 .cardOverlayFab-primary:active,
 .cardOverlayButton:active {
   transform: scale(0.94);
@@ -217,8 +232,18 @@
 }
 
 /* --- Horizontal scroll buttons ------------------------------------------ */
+/* The row of arrows beside a section title. Jellyfin pads it 12.6px at the
+   top, which pushed it 13.8px down into the first row of cards. */
 .emby-scrollbuttons {
   gap: 0.4em;
+  padding-block: 0;
+  align-self: center;
+}
+
+.emby-scrollbuttons-button {
+  width: 2.1em;
+  height: 2.1em;
+  padding: 0;
 }
 
 .emby-scrollbuttons-button {

@@ -171,6 +171,11 @@
      them edge to edge and flush into the corner; these are the air. */
   --la-card-overlay-gap: 0.4em;
   --la-card-overlay-inset: 0.55em;
+  /* The centred play button. Jellyfin's 3em at 130% is 58px, which on a
+     252x142 card overlaps the button row in the corner — measured at every
+     width from 900 to 1600, not just narrow windows. */
+  --la-card-fab-size: 2.6em;
+  --la-card-overlay-btn: 2em;
   /* Room the item grid has to keep clear for the alpha picker. The glass pill
      is wider than jellyfin's bare picker, and jellyfin's own reservation is a
      percentage — too little on a phone. See 06-controls.css. */
@@ -226,7 +231,7 @@
   --la-chrome-inset: 0.55em;
   /* A 62px bar at --la-r-xl is *almost* a capsule, which reads as an accident.
      Set this to var(--la-r-xl) for a softened rectangle instead. */
-  --la-header-radius: var(--la-r-pill);
+  --la-header-radius: var(--la-r-xl);
   /* --la-refract-width is 7px, a fifth of the header's height and nearly half
      the tab capsule's. The ring has to scale with the pane it hugs. */
   --la-header-refract-w: 4px;
