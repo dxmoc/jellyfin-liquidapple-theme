@@ -170,6 +170,13 @@
   --la-spring-sheet-t: var(--la-normal);
 
   /* --- Layout ------------------------------------------------------------- */
+  /* The bar sits directly on artwork, and glass amplifies whatever is behind
+     it. Over a saturated backdrop the full --la-saturate turned the header
+     into a solid colour slab — measured on a phone against red artwork. Its
+     own, calmer material, and a denser fill so the colour cannot dominate. */
+  --la-header-saturate: 115%;
+  --la-material-header: blur(var(--la-blur)) saturate(var(--la-header-saturate));
+  --la-fill-header-solid: rgba(13, 15, 20, 0.72);
   --la-header-h: 4.2em;
   --la-gutter: 1.6em;
   --la-lift: -4px; /* how far a hovered card rises */
@@ -180,8 +187,8 @@
   /* The centred play button. Jellyfin's 3em at 130% is 58px, which on a
      252x142 card overlaps the button row in the corner — measured at every
      width from 900 to 1600, not just narrow windows. */
-  --la-card-fab-size: 2.6em;
-  --la-card-overlay-btn: 2em;
+  --la-card-fab-size: 2.2em;
+  --la-card-overlay-btn: 2.45em;
   /* Room the item grid has to keep clear for the alpha picker. The glass pill
      is wider than jellyfin's bare picker, and jellyfin's own reservation is a
      percentage — too little on a phone. See 06-controls.css. */
@@ -904,6 +911,25 @@ a:hover,
    strip below) and has to stay. */
 .layout-desktop .withSectionTabs .headerTop {
   padding-bottom: 0;
+}
+
+/* Mobile runs the bar full-bleed, so there are no side or top edges to draw —
+   but --la-edge from 02 rings the whole pane, and those hairlines land right
+   on the screen edges and read as a frame around a floating box. One bottom
+   hairline instead, and the calmer header material so bright artwork behind
+   the bar stops turning it into a slab of that colour. */
+.layout-mobile .skinHeader:not(.osdHeader) {
+  background-color: var(--la-fill-header-solid);
+  -webkit-backdrop-filter: var(--la-material-header);
+  backdrop-filter: var(--la-material-header);
+  border-radius: 0;
+  box-shadow: inset 0 -1px 0 0 var(--la-rim);
+}
+
+/* The refraction ring draws its own bright edge on all four sides. */
+.layout-mobile .skinHeader:not(.osdHeader)::before,
+.layout-mobile .skinHeader:not(.osdHeader)::after {
+  content: none;
 }
 
 .layout-desktop .skinHeader-blurred:not(.osdHeader),
@@ -1752,6 +1778,15 @@ a:hover,
 .layout-tv .detailRibbon,
 .layout-tv .detailPageContent {
   padding-left: var(--la-hero-inset) !important;
+}
+
+/* Jellyfin paints .detailRibbon rgba(32,32,32,0.8) — a flat grey slab with
+   square corners. Every rule above is scoped to desktop and TV, so on mobile
+   that slab stayed visible behind the chips and buttons and cut a lighter
+   rectangle out of the hero, measured y=429..635 against artwork ending at
+   428.7. The hero scrim already carries legibility there. */
+.layout-mobile .detailRibbon {
+  background: transparent;
 }
 
 .mainDetailButtons {

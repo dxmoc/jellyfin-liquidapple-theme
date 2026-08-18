@@ -80,6 +80,15 @@
   padding-left: var(--la-hero-inset) !important;
 }
 
+/* Jellyfin paints .detailRibbon rgba(32,32,32,0.8) — a flat grey slab with
+   square corners. Every rule above is scoped to desktop and TV, so on mobile
+   that slab stayed visible behind the chips and buttons and cut a lighter
+   rectangle out of the hero, measured y=429..635 against artwork ending at
+   428.7. The hero scrim already carries legibility there. */
+.layout-mobile .detailRibbon {
+  background: transparent;
+}
+
 .mainDetailButtons {
   justify-content: var(--la-hero-align);
 }

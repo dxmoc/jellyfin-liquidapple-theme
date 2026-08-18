@@ -42,6 +42,25 @@
   padding-bottom: 0;
 }
 
+/* Mobile runs the bar full-bleed, so there are no side or top edges to draw —
+   but --la-edge from 02 rings the whole pane, and those hairlines land right
+   on the screen edges and read as a frame around a floating box. One bottom
+   hairline instead, and the calmer header material so bright artwork behind
+   the bar stops turning it into a slab of that colour. */
+.layout-mobile .skinHeader:not(.osdHeader) {
+  background-color: var(--la-fill-header-solid);
+  -webkit-backdrop-filter: var(--la-material-header);
+  backdrop-filter: var(--la-material-header);
+  border-radius: 0;
+  box-shadow: inset 0 -1px 0 0 var(--la-rim);
+}
+
+/* The refraction ring draws its own bright edge on all four sides. */
+.layout-mobile .skinHeader:not(.osdHeader)::before,
+.layout-mobile .skinHeader:not(.osdHeader)::after {
+  content: none;
+}
+
 .layout-desktop .skinHeader-blurred:not(.osdHeader),
 .layout-desktop .skinHeader-withBackground:not(.osdHeader) {
   margin: var(--la-chrome-inset);

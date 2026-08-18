@@ -164,6 +164,13 @@
   --la-spring-sheet-t: var(--la-normal);
 
   /* --- Layout ------------------------------------------------------------- */
+  /* The bar sits directly on artwork, and glass amplifies whatever is behind
+     it. Over a saturated backdrop the full --la-saturate turned the header
+     into a solid colour slab — measured on a phone against red artwork. Its
+     own, calmer material, and a denser fill so the colour cannot dominate. */
+  --la-header-saturate: 115%;
+  --la-material-header: blur(var(--la-blur)) saturate(var(--la-header-saturate));
+  --la-fill-header-solid: rgba(13, 15, 20, 0.72);
   --la-header-h: 4.2em;
   --la-gutter: 1.6em;
   --la-lift: -4px; /* how far a hovered card rises */
@@ -174,8 +181,8 @@
   /* The centred play button. Jellyfin's 3em at 130% is 58px, which on a
      252x142 card overlaps the button row in the corner — measured at every
      width from 900 to 1600, not just narrow windows. */
-  --la-card-fab-size: 2.6em;
-  --la-card-overlay-btn: 2em;
+  --la-card-fab-size: 2.2em;
+  --la-card-overlay-btn: 2.45em;
   /* Room the item grid has to keep clear for the alpha picker. The glass pill
      is wider than jellyfin's bare picker, and jellyfin's own reservation is a
      percentage — too little on a phone. See 06-controls.css. */
