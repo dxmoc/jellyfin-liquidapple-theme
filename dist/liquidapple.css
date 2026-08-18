@@ -1440,24 +1440,19 @@ a:hover,
     z-index: 2;
   }
 
-  .card-hoverable:hover .cardScalable,
-  .card-hoverable:hover .visualCardBox {
+  /* The artwork lifts. Nothing else does — and specifically not
+     `.visualCardBox`, the outer box the library grid draws around poster *and*
+     title. Scaling that grows the whole card, text included, straight into the
+     row below: the frame the user kept seeing over the neighbouring cards.
+     Both used to be listed here, which also scaled the poster twice over
+     (1.03 x 1.03), since in the grid `.cardScalable` sits inside the box. One
+     element, and it is the one holding the picture. */
+  .card-hoverable:hover .cardScalable {
     transform: translateY(var(--la-lift)) scale(1.03);
     box-shadow:
       inset 0 1px 0 0 var(--la-rim-hover),
       inset 0 0 0 1px var(--la-rim-hover),
       var(--la-shadow-lift);
-  }
-
-  /* Exactly one layer may carry the lift. Jellyfin uses `.visualCardBox` for
-     cards that draw their own box — the library grid — and `.cardScalable` for
-     the rest, but in the grid the second sits *inside* the first. Both rules
-     then fired: the poster scaled twice (1.03 x 1.03) and the rim was drawn a
-     second time around the whole box, title included, which read as a pale grey
-     frame sitting over the neighbouring cards. The outer box wins there. */
-  .card-hoverable:hover .visualCardBox .cardScalable {
-    transform: none;
-    box-shadow: none;
   }
 
   .card-hoverable:hover .cardText-first {
