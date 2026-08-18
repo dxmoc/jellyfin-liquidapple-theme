@@ -7,6 +7,14 @@ what supplies the colour.
 
 One CSS file. No JavaScript, no plugin.
 
+## Preview
+
+![The home screen: floating header, glass tabs, rounded artwork](assets/home.webp)
+
+| | |
+| --- | --- |
+| ![A film's detail page, its logo over the backdrop](assets/detail.webp) | ![The player OSD floating over the video](assets/player.webp) |
+
 ## Install
 
 Dashboard → **General** → **Custom CSS**, paste this and save:
