@@ -4,6 +4,14 @@
  */
 
 /* ==== 00-tokens.css ==== */
+/* Inter, the face ElegantFin uses. This is the one external request the
+   theme makes — see the note in CLAUDE.md. It has to stay the first rule in
+   the built file: @import is only valid before any style rule, and build.py
+   concatenates src/ in filename order, so it belongs at the top of 00.
+   The opsz axis is what gives large text real display proportions rather
+   than the body cut scaled up. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
 /* ============================================================================
    00 — TOKENS
    Every tunable value lives here. To re-skin the theme, redefine any of these
@@ -93,18 +101,16 @@
 
   /* --- Type ---------------------------------------------------------------
      SF Pro on Apple hardware, Inter everywhere else — the closest widely
-     available substitute for SF's proportions. */
+     available substitute for SF's proportions, and now actually loaded
+     rather than merely hoped for (see the @import at the top). */
   --la-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     "Inter", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  /* Titles get the *display* optical size of the system face, which is a real
-     second typeface rather than the body font enlarged: SF Pro Display on Apple
-     hardware, Segoe UI Variable Display on Windows. Both ship with the OS —
-     a downloaded face (ElegantFin pulls Inter off Google Fonts) would be an
-     external request, and this theme does not make any. Note that "Inter" in
-     --la-font only ever applies where it is installed locally; on stock Windows
-     the stack falls through to system-ui. */
+  /* Titles ask for the *display* cut rather than the body face enlarged. With
+     the variable Inter above that is the opsz axis doing the work, so the title
+     needs font-optical-sizing: auto to actually get it (see 05-detail.css).
+     Apple hardware still prefers SF Pro Display and never downloads anything. */
   --la-font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont,
-    "Segoe UI Variable Display", "Segoe UI Variable", "Inter Display", "Inter",
+    "Inter", "Segoe UI Variable Display", "Segoe UI Variable",
     system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --la-tracking-tight: -0.021em;
   --la-tracking-display: -0.032em;
@@ -1327,6 +1333,7 @@ a:hover,
 .nameContainer > h1.itemName,
 .nameContainer > h1.parentName {
   font-family: var(--la-font-display);
+  font-optical-sizing: auto;
   font-size: 3.2em;
   font-weight: 700;
   letter-spacing: var(--la-tracking-display);
