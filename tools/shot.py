@@ -12,6 +12,12 @@ Environment:
                           read as a fraction of the page
     LA_FULLPAGE=1         capture the whole page instead of one viewport, by
                           growing the viewport to the page height first
+    LA_LANG=en-US         claim this browser language; jellyfin's display
+                          language is Auto, so the client follows it
+    LA_QUALITY=88         encoder quality for .webp / .jpg output (the format
+                          comes from the output file's extension)
+    LA_AUTOPLAY=1         let a probe start playback: a scripted click is not a
+                          user gesture, so chrome blocks the video otherwise
     LA_MOTION=1           emulate prefers-reduced-motion: no-preference. Windows
                           animations are off on this machine, so reduce is
                           otherwise always on and the motion path — springs,
@@ -36,6 +42,14 @@ MOBILE = VIEWPORT[0] < 800
 SCROLL = float(os.environ.get('LA_SCROLL', 0))
 FULLPAGE = os.environ.get('LA_FULLPAGE') not in (None, '', '0')
 MOTION = os.environ.get('LA_MOTION') not in (None, '', '0')
+# The display language is a per-user setting, and this server's is set to Auto —
+# meaning jellyfin reads it off the browser. So the readme's english shots need
+# no change on the server, only a browser claiming to be english.
+LANG = os.environ.get('LA_LANG')
+# A probe that starts playback clicks the button from script, which chrome does
+# not count as a user gesture — without this the video never leaves paused.
+AUTOPLAY = os.environ.get('LA_AUTOPLAY') not in (None, '', '0')
+QUALITY = int(os.environ.get('LA_QUALITY', 88))
 MAX_HEIGHT = 6000
 
 
@@ -49,6 +63,10 @@ def main():
          '--hide-scrollbars', '--force-device-scale-factor=1',
          f'--user-data-dir={PROFILE}', f'--remote-debugging-port={PORT}',
          f'--window-size={VIEWPORT[0]},{VIEWPORT[1]}']
+        # --lang alone moves chrome's own UI; jellyfin reads navigator.language,
+        # which follows --accept-lang.
+        + ([f'--lang={LANG}', f'--accept-lang={LANG}'] if LANG else [])
+        + (['--autoplay-policy=no-user-gesture-required'] if AUTOPLAY else [])
         # Jellyfin picks .layout-mobile from the user agent, not the window size,
         # so a narrow viewport alone renders the desktop layout squeezed thin.
         + ([('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)'
@@ -102,6 +120,8 @@ def main():
         # el.focus() still moves activeElement, but not one :focus rule applies,
         # so every focus-state measurement silently reads the resting style.
         call('Emulation.setFocusEmulationEnabled', {'enabled': True})
+        if LANG:
+            call('Emulation.setLocaleOverride', {'locale': LANG})
         if MOTION:
             call('Emulation.setEmulatedMedia',
                  {'features': [{'name': 'prefers-reduced-motion',
@@ -218,13 +238,20 @@ def main():
         # scrollWidth several times the viewport width, and captureBeyondViewport
         # would grab all of it — rendering the real layout as a narrow column
         # that looks exactly like a layout bug.
-        shot = call('Page.captureScreenshot', {'format': 'png'})
+        # Chrome encodes webp itself, so the readme's assets need no pillow and
+        # no second pass — the extension picks the encoder.
+        fmt = 'png' if out_png.lower().endswith('.png') else (
+              'jpeg' if out_png.lower().endswith(('.jpg', '.jpeg')) else 'webp')
+        params = {'format': fmt}
+        if fmt != 'png':
+            params['quality'] = QUALITY
+        shot = call('Page.captureScreenshot', params)
         data = shot.get('result', {}).get('data')
         if not data:
             sys.exit('screenshot failed: ' + json.dumps(shot)[:300])
         with open(out_png, 'wb') as fh:
             fh.write(base64.b64decode(data))
-        print('geschrieben:', out_png, os.path.getsize(out_png), 'bytes')
+        print('geschrieben:', out_png, os.path.getsize(out_png), 'bytes', f'({fmt})')
     finally:
         proc.terminate()
 

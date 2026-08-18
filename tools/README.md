@@ -18,6 +18,13 @@ By default it captures exactly one viewport — what the device actually shows.
 | `LA_SCROLL=1200` | scroll down before capturing; a value ≤ 1 is read as a fraction of the page |
 | `LA_FULLPAGE=1` | capture the whole page (see the trap below — it distorts `vh`) |
 | `LA_MOTION=1` | emulate `prefers-reduced-motion: no-preference` |
+| `LA_LANG=en-US` | claim this browser language. The display language on this server is *Auto*, so the client follows the browser — english shots need no change on the server |
+| `LA_AUTOPLAY=1` | drop chrome's gesture requirement, so a probe can start playback |
+| `LA_QUALITY=88` | encoder quality for lossy output |
+
+The output **format comes from the file extension** — `.png`, `.jpg` or `.webp`,
+encoded by chrome itself. The readme's assets are webp straight out of a run;
+nothing converts them afterwards, and there is still no dependency to install.
 
 `LA_MOTION` matters more than it looks: Windows animations are off on this
 machine, so `reduce` is permanently on and every spring, entrance and hover
