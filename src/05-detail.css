@@ -383,3 +383,34 @@
 #guestCastContent .cardScalable {
   border-radius: var(--la-r-pill);
 }
+
+/* --- Hero ohne Artwork ----------------------------------------------------
+   The hero in 01-base.css reserves --la-hero-height unconditionally, and the
+   wrapper then rides up by --la-hero-overlap to meet it. When jellyfin renders
+   no backdrop at all — which is the default, "Backdrops anzeigen" is off — that
+   is 72vh of nothing above the title: measured 914px on a 1269px viewport, on
+   every single item. Reserving space for artwork that does not exist is the
+   whole bug, so tie the reservation to the artwork being there.
+
+   .backdropImage is the desktop signal (the picture lives there, #itemBackdrop
+   is only the placeholder that sizes the hero). Collapsing the hero also has to
+   drop the overlap and put back a top offset, because the rules above deleted
+   jellyfin's own padding.
+
+   :has has no fallback on old TV webviews, so this is an override on top of the
+   unconditional rule rather than a rewrite of it — without :has the theme keeps
+   its previous behaviour. Mobile and TV use a different mechanism (#itemBackdrop
+   carries the image itself) and are NOT covered here. */
+@supports selector(:has(*)) {
+  :root:not(:has(.backdropImage)) {
+    --la-hero-overlap: 0vh;
+  }
+
+  .layout-desktop:not(:has(.backdropImage)) .itemBackdrop {
+    height: 0;
+  }
+
+  .layout-desktop:not(:has(.backdropImage)) .detailPageWrapperContainer {
+    padding-top: calc(var(--la-header-h) + 2em);
+  }
+}
