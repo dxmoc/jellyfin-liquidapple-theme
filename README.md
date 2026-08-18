@@ -71,8 +71,10 @@ ring on TV clients, where stacked blur layers are a slideshow.
 
 Sluggish on a weak machine? Set `--la-refract-blur: 0px`, then `--la-blur: 0px`.
 
-The one thing loaded from elsewhere is Inter, from Google Fonts. Override
-`--la-font` if you would rather keep every request on your own server.
+Nothing is loaded from anywhere else: no CDN assets, no remote images, no web
+fonts. The type is whatever the machine already has — SF Pro on Apple hardware,
+Segoe UI on Windows, Roboto on Android. Name a face in `--la-font` if you would
+rather use your own.
 
 ## Develop
 
