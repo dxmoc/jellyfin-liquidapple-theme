@@ -267,3 +267,15 @@
     }
   }
 }
+
+/* The bottom-right overlay buttons and the progress bar both anchor to
+   `bottom: 0`, so on a half-watched item the check/heart/menu row sat right on
+   top of the bar — measured 4.8px of overlap, which is the bar's whole height.
+   Lift the row clear of it: bar height plus its margin plus the footer's bottom
+   padding. Only where a bar actually exists, or the buttons float for no reason
+   on everything else. */
+@supports selector(:has(*)) {
+  .card:has(.itemProgressBar) .cardOverlayButton-br {
+    bottom: 1.15em;
+  }
+}
