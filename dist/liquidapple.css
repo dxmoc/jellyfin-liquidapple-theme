@@ -197,7 +197,15 @@
   --la-hero-overlap: 14vh;
   --la-hero-align: center;
   --la-detail-poster: none;
-  --la-detail-logo: none;
+  /* The clear logo — the film's own title artwork, which is what ElegantFin
+     shows instead of a text title. 269 of 275 items on the reference server
+     carry one, and jellyfin marks the ones that do not with .hide, so the text
+     title can step back in without ever leaving the page nameless.
+     --la-detail-title is the text title *while a logo is shown*; set it to
+     block to get both, or set --la-detail-logo to none for text only. */
+  --la-detail-logo: block;
+  --la-detail-logo-h: 15vh;
+  --la-detail-title: none;
   /* Shared left edge for hero text, body copy and the section rows. Raise to
      ~33vw together with --la-detail-poster: block. */
   --la-hero-inset: var(--la-gutter);
@@ -1373,18 +1381,47 @@ a:hover,
   box-shadow: var(--la-edge-soft), var(--la-shadow-lg);
 }
 
-/* Jellyfin parks the clear logo in the middle of the artwork, where it collides
-   with whatever the image has going on there. Since the theme keeps the text
-   title (reliable — a logo that fails to load must not leave the page nameless),
-   the logo would be a second title anyway, so it is off by default.
-   Set --la-detail-logo to `block` for the logo-instead-of-title look. */
+/* Jellyfin parks the clear logo at a fixed offset in the middle of the artwork,
+   where it collides with whatever the image has going on there — measured at
+   left: 464px, sitting on top of the action buttons. Re-anchor it to where the
+   title sits: centred, resting directly on top of the info block. That block
+   starts where the artwork ends minus the overlap, so the hero tokens give the
+   position without needing to know anything else. */
 .detailLogo {
   display: var(--la-detail-logo);
+  position: absolute;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  transform: translateX(-50%);
+  width: min(46ch, 62vw);
+  height: var(--la-detail-logo-h);
+  max-height: none;
+  background-position: center bottom;
+  background-size: contain;
+  background-repeat: no-repeat;
   filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.7));
 }
 
 .layout-desktop .detailLogo {
-  max-height: 18vh;
+  top: calc(
+    var(--la-hero-height) - var(--la-hero-overlap) - var(--la-detail-logo-h) - 0.4em
+  );
+}
+
+.layout-mobile .detailLogo {
+  width: 78vw;
+  top: calc(46vh - var(--la-hero-overlap) - var(--la-detail-logo-h) - 0.2em);
+}
+
+/* The text title steps aside only where a logo actually rendered. Jellyfin puts
+   .hide on the element when the item has none, which is the only reliable
+   signal — background-image is not something CSS can test for. */
+@supports selector(:has(*)) {
+  .itemDetailPage:has(.detailLogo:not(.hide)) .nameContainer > h1.itemName,
+  .itemDetailPage:has(.detailLogo:not(.hide)) .nameContainer > h1.parentName {
+    display: var(--la-detail-title);
+  }
 }
 
 /* --- Titles ------------------------------------------------------------- */
@@ -1697,6 +1734,10 @@ a:hover,
 @supports selector(:has(*)) {
   :root:not(:has(.backdropImage)) {
     --la-hero-overlap: 0vh;
+    /* The logo is positioned off the hero, and without artwork there is no
+       hero to position against — so hand the page back to the text title. */
+    --la-detail-logo: none;
+    --la-detail-title: block;
   }
 
   .layout-desktop:not(:has(.backdropImage)) .itemBackdrop {

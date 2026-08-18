@@ -191,7 +191,15 @@
   --la-hero-overlap: 14vh;
   --la-hero-align: center;
   --la-detail-poster: none;
-  --la-detail-logo: none;
+  /* The clear logo — the film's own title artwork, which is what ElegantFin
+     shows instead of a text title. 269 of 275 items on the reference server
+     carry one, and jellyfin marks the ones that do not with .hide, so the text
+     title can step back in without ever leaving the page nameless.
+     --la-detail-title is the text title *while a logo is shown*; set it to
+     block to get both, or set --la-detail-logo to none for text only. */
+  --la-detail-logo: block;
+  --la-detail-logo-h: 15vh;
+  --la-detail-title: none;
   /* Shared left edge for hero text, body copy and the section rows. Raise to
      ~33vw together with --la-detail-poster: block. */
   --la-hero-inset: var(--la-gutter);
