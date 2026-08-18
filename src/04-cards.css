@@ -59,6 +59,15 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
+  /* A card that rises has to rise *over* its neighbours. Cards are static, so
+     without this the next row simply paints on top: measured 17px of the lifted
+     card covered by the row above, its title included. Only while hovered —
+     a permanent z-index would build one stacking context per card. */
+  .card-hoverable:hover {
+    position: relative;
+    z-index: 2;
+  }
+
   .card-hoverable:hover .cardScalable,
   .card-hoverable:hover .visualCardBox {
     transform: translateY(var(--la-lift)) scale(1.03);
@@ -140,6 +149,30 @@
    theme, so they get the thin material and a full-round radius. */
 .cardOverlayContainer {
   border-radius: inherit;
+}
+
+/* Jellyfin reveals the overlay on `:focus-within` as well as on hover, and when
+   you navigate back it restores focus to the card you came from. The card then
+   sits there wearing its play button and its scrim with the pointer nowhere
+   near it, until something else takes focus — reported 2026-08-18.
+
+   `:focus-visible` is not the way out: chrome sets it for a *scripted* focus,
+   which is exactly what jellyfin does on the way back (measured — a scripted
+   .focus() matches :focus-visible with no keyboard involved). So the split is by
+   input model instead. Where there is a real pointer, hover is the signal and
+   focus is not; keyboard users still get the focus ring, which this theme draws
+   prominently. TV keeps jellyfin's behaviour untouched — there focus *is* the
+   pointer. */
+@media (hover: hover) and (pointer: fine) {
+  :root:not(.layout-tv) .card-hoverable:focus-within .cardOverlayContainer,
+  :root:not(.layout-tv) .card-hoverable:focus-within .cardOverlayButton-hover {
+    opacity: 0;
+  }
+
+  :root:not(.layout-tv) .card-hoverable:hover .cardOverlayContainer,
+  :root:not(.layout-tv) .card-hoverable:hover .cardOverlayButton-hover {
+    opacity: 1;
+  }
 }
 
 .cardOverlayContainer::after {
