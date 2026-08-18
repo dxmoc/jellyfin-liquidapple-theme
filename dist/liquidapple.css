@@ -367,6 +367,10 @@
   /* The sunken well every text field and checkbox shares. It was written out
      as a literal in four places in 06-controls.css. */
   --la-well: inset 0 1px 2px rgba(0, 0, 0, 0.32);
+
+  /* Blur under a card's footer band. Applied through a masked layer, so it can
+     be stronger than the 3px that used to sit on the band itself. */
+  --la-card-footer-blur: 5px;
 }
 
 /* ==== 01-base.css ==== */
@@ -1459,13 +1463,43 @@ a:hover,
   font-weight: 450;
 }
 
+/* Do not add `position` here. Jellyfin already pins this band with
+   `position: absolute` and edge offsets; a `position: relative` of ours took
+   that away, the band collapsed to shrink-to-fit and the progress bar inside it
+   measured 0px wide — invisible on every card in progress. */
 .innerCardFooter,
 .chapterThumbTextContainer {
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.85), transparent);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
   border-radius: 0 0 var(--la-r-lg) var(--la-r-lg);
   padding: 1.6em 0.7em 0.5em;
+}
+
+/* The blur gets a masked layer of its own instead of sitting on the band. On
+   the band itself its top edge cut a visible line across the artwork of every
+   card in progress — the band is 1.6em tall and the filter stopped dead. Masked,
+   it starts at nothing and only reaches full strength behind the bar, so there
+   is no edge left to see. ::before paints before the text and the bar, so it
+   stays behind both. */
+.innerCardFooter::before,
+.chapterThumbTextContainer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(var(--la-card-footer-blur));
+  backdrop-filter: blur(var(--la-card-footer-blur));
+  -webkit-mask-image: linear-gradient(to bottom, transparent 8%, #000 70%);
+  mask-image: linear-gradient(to bottom, transparent 8%, #000 70%);
+}
+
+/* Same trick 02-material.css uses for its decorative layers: an absolutely
+   positioned ::before paints over static siblings, and the progress bar is
+   static — it disappeared into its own blur until the content was lifted back
+   above it. */
+.innerCardFooter > *,
+.chapterThumbTextContainer > * {
+  position: relative;
 }
 
 /* --- Overlay controls ---------------------------------------------------
@@ -1505,6 +1539,7 @@ a:hover,
     background-color var(--la-fast) var(--la-ease-out),
     transform var(--la-fast) var(--la-ease-out);
 }
+
 
 .cardOverlayFab-primary:hover,
 .cardOverlayButton:hover,
@@ -2051,13 +2086,26 @@ a:hover,
   letter-spacing: var(--la-tracking-tight);
   transition:
     transform var(--la-fast) var(--la-ease-out),
-    box-shadow var(--la-fast) var(--la-ease-out),
-    filter var(--la-fast) var(--la-ease-out);
+    box-shadow var(--la-fast) var(--la-ease-out);
 }
 
+/* `background` has to be restated here, and leaving it out was a real bug: the
+   shared interaction group in 02-material.css matches this button through
+   `.emby-button.raised:hover` and sets `background-color: var(--la-fill-hover)`.
+   A hover rule that says nothing about the background therefore let a
+   *translucent* fill replace the solid accent, and the primary action turned to
+   glass under the pointer — reported on 2026-08-18 as the play button and its
+   neighbours "filling with blur". Measured with `LA_HOVER=.btnPlay` on the
+   detail page: still wrong at 350ms, so it was never a flicker, only a state
+   nobody held still long enough to see.
+
+   The lift is an inset shadow rather than `filter: brightness()` on purpose. A
+   filter makes the element a backdrop root, and this button sits in a row of
+   glass — not something to hand chrome another reason to recomposite. */
 .btnPlay.detailButton:hover {
-  filter: brightness(1.08);
+  background: var(--la-accent);
   box-shadow:
+    inset 0 0 0 999px rgba(255, 255, 255, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.6),
     inset 0 0 0 1px rgba(255, 255, 255, 0.3),
     var(--la-shadow-lift),
@@ -2174,6 +2222,15 @@ a:hover,
   flex-wrap: wrap;
   gap: 0.45em;
   margin: 0.9em 0;
+}
+
+/* Jellyfin lays the tags out as inline text with commas between them, and an
+   inline box contributes none of its vertical padding to the line. Measured:
+   the pills are 25.2px tall inside a 21.6px line, so every wrapped row landed
+   on the one above it. The pills are inline-flex (they have to be, for the
+   padding to show), so the room has to come from the line itself. */
+.itemTags {
+  line-height: 2.25;
 }
 
 .itemExternalLinks.focuscontainer-x > .button-link,
@@ -3708,6 +3765,7 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     --la-material-thin: none;
     --la-material-thick: none;
     --la-refract-blur: 0px;
+    --la-card-footer-blur: 0px;
     --la-mesh-opacity: 0;
     --la-fill: rgba(255, 255, 255, 0.10);
     --la-fill-hover: rgba(255, 255, 255, 0.18);

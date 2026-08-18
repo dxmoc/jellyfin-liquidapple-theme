@@ -351,13 +351,26 @@
   letter-spacing: var(--la-tracking-tight);
   transition:
     transform var(--la-fast) var(--la-ease-out),
-    box-shadow var(--la-fast) var(--la-ease-out),
-    filter var(--la-fast) var(--la-ease-out);
+    box-shadow var(--la-fast) var(--la-ease-out);
 }
 
+/* `background` has to be restated here, and leaving it out was a real bug: the
+   shared interaction group in 02-material.css matches this button through
+   `.emby-button.raised:hover` and sets `background-color: var(--la-fill-hover)`.
+   A hover rule that says nothing about the background therefore let a
+   *translucent* fill replace the solid accent, and the primary action turned to
+   glass under the pointer — reported on 2026-08-18 as the play button and its
+   neighbours "filling with blur". Measured with `LA_HOVER=.btnPlay` on the
+   detail page: still wrong at 350ms, so it was never a flicker, only a state
+   nobody held still long enough to see.
+
+   The lift is an inset shadow rather than `filter: brightness()` on purpose. A
+   filter makes the element a backdrop root, and this button sits in a row of
+   glass — not something to hand chrome another reason to recomposite. */
 .btnPlay.detailButton:hover {
-  filter: brightness(1.08);
+  background: var(--la-accent);
   box-shadow:
+    inset 0 0 0 999px rgba(255, 255, 255, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.6),
     inset 0 0 0 1px rgba(255, 255, 255, 0.3),
     var(--la-shadow-lift),
@@ -474,6 +487,15 @@
   flex-wrap: wrap;
   gap: 0.45em;
   margin: 0.9em 0;
+}
+
+/* Jellyfin lays the tags out as inline text with commas between them, and an
+   inline box contributes none of its vertical padding to the line. Measured:
+   the pills are 25.2px tall inside a 21.6px line, so every wrapped row landed
+   on the one above it. The pills are inline-flex (they have to be, for the
+   padding to show), so the room has to come from the line itself. */
+.itemTags {
+  line-height: 2.25;
 }
 
 .itemExternalLinks.focuscontainer-x > .button-link,
