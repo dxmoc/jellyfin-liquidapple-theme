@@ -153,10 +153,14 @@ def main():
         # outside the viewport *horizontally* (the off-screen half of every
         # "overflow" row) never load no matter how far the page scrolls, so
         # counting them means waiting out the full timeout on every single run.
-        def settle():
-            for frac in (0.0, 0.25, 0.5, 0.75, 1.0, 0.5, 0.0):
-                js(f"window.scrollTo(0, document.body.scrollHeight*{frac}); 1")
-                time.sleep(1.2)
+        def settle(walk=True):
+            # The walk parks the page back at the top when it is done, so anything
+            # that wants a specific scroll position has to settle first and scroll
+            # afterwards — see the LA_SCROLL branch below.
+            if walk:
+                for frac in (0.0, 0.25, 0.5, 0.75, 1.0, 0.5, 0.0):
+                    js(f"window.scrollTo(0, document.body.scrollHeight*{frac}); 1")
+                    time.sleep(1.2)
             pending = None
             for _ in range(30):
                 time.sleep(1)
@@ -197,10 +201,13 @@ def main():
             print('Vollseite: Viewport auf', VIEWPORT[0], 'x', int(height),
                   '| ausstehend:', settle())
         elif SCROLL:
+            # settle() above already walked the page; walking again here would
+            # park it back at the top and the capture would silently be taken at
+            # y=0 — which is exactly what every scrolled shot used to be.
             js('window.scrollTo(0, %s); 1' % (
                 f'document.body.scrollHeight*{SCROLL}' if SCROLL <= 1 else SCROLL))
             time.sleep(2)
-            settle()
+            settle(walk=False)
             print('gescrollt auf y =', js('Math.round(window.scrollY)'))
 
         # A plain viewport capture. Horizontal scrollers (cast, "similar") make
