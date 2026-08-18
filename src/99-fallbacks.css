@@ -33,6 +33,7 @@
     --la-material-thin: none;
     --la-material-thick: none;
     --la-refract-blur: 0px;
+    --la-card-footer-blur: 0px;
     --la-mesh-opacity: 0;
     --la-fill: rgba(255, 255, 255, 0.10);
     --la-fill-hover: rgba(255, 255, 255, 0.18);

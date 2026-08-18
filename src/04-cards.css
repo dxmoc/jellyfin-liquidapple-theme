@@ -84,13 +84,43 @@
   font-weight: 450;
 }
 
+/* Do not add `position` here. Jellyfin already pins this band with
+   `position: absolute` and edge offsets; a `position: relative` of ours took
+   that away, the band collapsed to shrink-to-fit and the progress bar inside it
+   measured 0px wide — invisible on every card in progress. */
 .innerCardFooter,
 .chapterThumbTextContainer {
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.85), transparent);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
   border-radius: 0 0 var(--la-r-lg) var(--la-r-lg);
   padding: 1.6em 0.7em 0.5em;
+}
+
+/* The blur gets a masked layer of its own instead of sitting on the band. On
+   the band itself its top edge cut a visible line across the artwork of every
+   card in progress — the band is 1.6em tall and the filter stopped dead. Masked,
+   it starts at nothing and only reaches full strength behind the bar, so there
+   is no edge left to see. ::before paints before the text and the bar, so it
+   stays behind both. */
+.innerCardFooter::before,
+.chapterThumbTextContainer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(var(--la-card-footer-blur));
+  backdrop-filter: blur(var(--la-card-footer-blur));
+  -webkit-mask-image: linear-gradient(to bottom, transparent 8%, #000 70%);
+  mask-image: linear-gradient(to bottom, transparent 8%, #000 70%);
+}
+
+/* Same trick 02-material.css uses for its decorative layers: an absolutely
+   positioned ::before paints over static siblings, and the progress bar is
+   static — it disappeared into its own blur until the content was lifted back
+   above it. */
+.innerCardFooter > *,
+.chapterThumbTextContainer > * {
+  position: relative;
 }
 
 /* --- Overlay controls ---------------------------------------------------
@@ -130,6 +160,7 @@
     background-color var(--la-fast) var(--la-ease-out),
     transform var(--la-fast) var(--la-ease-out);
 }
+
 
 .cardOverlayFab-primary:hover,
 .cardOverlayButton:hover,
