@@ -18,6 +18,12 @@ Environment:
                           comes from the output file's extension)
     LA_AUTOPLAY=1         let a probe start playback: a scripted click is not a
                           user gesture, so chrome blocks the video otherwise
+    LA_HOVER=<selector>   move a real pointer onto the first match before
+                          capturing, so :hover states render
+    LA_HOVER_WAIT=900     ms between the pointer landing and the capture. Low
+                          values catch a transition mid-flight
+    LA_PROBE_AFTER=f.js   a second probe, run after the hover and just before
+                          the capture — the only way to measure a hover state
     LA_MOTION=1           emulate prefers-reduced-motion: no-preference. Windows
                           animations are off on this machine, so reduce is
                           otherwise always on and the motion path — springs,
@@ -49,6 +55,14 @@ LANG = os.environ.get('LA_LANG')
 # A probe that starts playback clicks the button from script, which chrome does
 # not count as a user gesture — without this the video never leaves paused.
 AUTOPLAY = os.environ.get('LA_AUTOPLAY') not in (None, '', '0')
+# Hover states could not be rendered at all before: :hover needs a real pointer,
+# which no amount of scripting inside the page can fake. LA_HOVER_WAIT is what
+# makes a *transient* hover bug catchable — the capture lands mid-transition.
+HOVER = os.environ.get('LA_HOVER')
+HOVER_WAIT = float(os.environ.get('LA_HOVER_WAIT', 900))
+# The ordinary probe runs before the pointer moves, so it can never see a hover
+# state. This one runs right before the capture, with the hover already applied.
+PROBE_AFTER = os.environ.get('LA_PROBE_AFTER')
 QUALITY = int(os.environ.get('LA_QUALITY', 88))
 MAX_HEIGHT = 6000
 
@@ -233,6 +247,22 @@ def main():
             time.sleep(2)
             settle(walk=False)
             print('gescrollt auf y =', js('Math.round(window.scrollY)'))
+
+        if HOVER:
+            # Element centre in viewport coordinates, then a real pointer move
+            # through the input pipeline — Input.dispatchMouseEvent is the only
+            # way :hover actually matches.
+            at = js("(function(){var el = document.querySelector(%s);if (!el) return null;el.scrollIntoView({block:'center'});var r = el.getBoundingClientRect();return [Math.round(r.left + r.width/2), Math.round(r.top + r.height/2)];})()" % json.dumps(HOVER))
+            if not at:
+                sys.exit('LA_HOVER: nichts passt auf ' + HOVER)
+            time.sleep(0.6)
+            call('Input.dispatchMouseEvent',
+                 {'type': 'mouseMoved', 'x': at[0], 'y': at[1], 'buttons': 0})
+            print('gehovert auf', HOVER, 'bei', at, '| Wartezeit', HOVER_WAIT, 'ms')
+            time.sleep(HOVER_WAIT / 1000.0)
+
+        if PROBE_AFTER:
+            print(js(open(PROBE_AFTER, encoding='utf-8').read()))
 
         # A plain viewport capture. Horizontal scrollers (cast, "similar") make
         # scrollWidth several times the viewport width, and captureBeyondViewport

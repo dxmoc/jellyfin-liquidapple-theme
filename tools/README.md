@@ -21,6 +21,9 @@ By default it captures exactly one viewport — what the device actually shows.
 | `LA_LANG=en-US` | claim this browser language. The display language on this server is *Auto*, so the client follows the browser — english shots need no change on the server |
 | `LA_AUTOPLAY=1` | drop chrome's gesture requirement, so a probe can start playback |
 | `LA_QUALITY=88` | encoder quality for lossy output |
+| `LA_HOVER=.btnPlay` | move a real pointer onto the first match before capturing. `:hover` needs an actual pointer — nothing scripted inside the page makes it match |
+| `LA_HOVER_WAIT=900` | ms between the pointer landing and the capture. Small values catch a transition mid-flight, which is how a "it only flickers" bug gets photographed |
+| `LA_PROBE_AFTER=p.js` | a second probe, run after the hover and right before the capture — the ordinary probe runs before the pointer moves and can never see a hover state |
 
 The output **format comes from the file extension** — `.png`, `.jpg` or `.webp`,
 encoded by chrome itself. The readme's assets are webp straight out of a run;
