@@ -17,7 +17,7 @@ One CSS file. No JavaScript, no plugin.
 
 ## Install
 
-Dashboard → **General** → **Custom CSS**, paste this and save:
+Dashboard → **Branding** → **Custom CSS code**, paste this and save:
 
 ```css
 @import url("https://cdn.jsdelivr.net/gh/dxmoc/jellyfin-liquidapple-theme@main/dist/liquidapple.min.css");
