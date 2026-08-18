@@ -52,6 +52,12 @@
   --la-fill-sunken: rgba(0, 0, 0, 0.24);
   --la-fill-thick: rgba(26, 28, 36, 0.60);
   --la-fill-chrome: rgba(16, 18, 24, 0.52);
+  /* Dialogs and action sheets sit *on top of* chrome, so they run denser.
+     This has to be its own root token rather than a local override of
+     --la-fill-chrome: a local override shadows the root value, and the
+     opaque swaps in 99-fallbacks.css all target the root — so no-backdrop-
+     filter, Reduce Transparency and TV would never have reached a dialog. */
+  --la-fill-dialog: rgba(22, 24, 32, 0.72);
 
   /* --- Rim light -----------------------------------------------------------
      A pane of glass is lit from above and shadowed below. This one composite
@@ -203,6 +209,67 @@
   /* Shared left edge for hero text, body copy and the section rows. Raise to
      ~33vw together with --la-detail-poster: block. */
   --la-hero-inset: var(--la-gutter);
+
+  /* --- Header chrome -------------------------------------------------------
+     The header is the one pane that is 25 times wider than it is tall, so the
+     material recipe in 02 — written for a dialog — needs its own numbers here.
+     Everything below was measured on the live client at 1600x1200; see the
+     comments in 03-chrome.css for what each one is compensating for. */
+
+  /* How far the floating chrome (header, drawer) sits off the viewport edge.
+     jellyfin parks the closed drawer against that same number, so it is shared
+     rather than repeated. */
+  --la-chrome-inset: 0.55em;
+  /* A 62px bar at --la-r-xl is *almost* a capsule, which reads as an accident.
+     Set this to var(--la-r-xl) for a softened rectangle instead. */
+  --la-header-radius: var(--la-r-pill);
+  /* --la-refract-width is 7px, a fifth of the header's height and nearly half
+     the tab capsule's. The ring has to scale with the pane it hugs. */
+  --la-header-refract-w: 4px;
+  --la-tabs-refract-w: 2.5px;
+  /* The specular sheen, straight top-down instead of 02's diagonal rake — the
+     rake's gradient line is only 388px long on a 1584px bar. */
+  --la-sheen-top: rgba(255, 255, 255, 0.11);
+  --la-sheen-mid: rgba(255, 255, 255, 0.035);
+  /* Over hero artwork jellyfin drops the header's background entirely and never
+     brings it back, so the bar needs *something* that keeps content readable
+     when it scrolls underneath. A scrim, the way iOS handles a nav bar over a
+     photo: no pane, no rim, just a falloff. --la-header-scrim-fade is how far
+     past the bar it keeps fading. */
+  --la-header-scrim: rgba(6, 7, 10, 0.62);
+  --la-header-scrim-mid: rgba(6, 7, 10, 0.22);
+  --la-header-scrim-fade: 1.8em;
+  /* How far the item page has to scroll before the bar stops being a scrim and
+     becomes the same glass pane it is everywhere else. Roughly two bar heights;
+     0px would mean the pane is always there. Needs scroll-driven animations —
+     without them the scrim is the whole story. */
+  --la-header-materialise-at: 130px;
+  --la-header-icon-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  /* Clearance for the hidden header. --la-shadow-lg reaches 84px below the box
+     (24px offset + 60px blur), so -100% alone leaves a dark smear across the
+     top of the page. Measured on mobile, where jellyfin actually uses headroom:
+     6em was still 5px short. */
+  --la-header-hide-clear: 8em;
+  /* Inset trough: a pressed-in well for the tab strip and the search field. */
+  --la-edge-sunken:
+    inset 0 1px 2px rgba(0, 0, 0, 0.32),
+    inset 0 0 0 1px var(--la-rim);
+  /* The selected segment. Glass, like every other "this one is on" state in the
+     theme (see .navMenuOption-selected) — a solid --la-accent pill would claim
+     to be the primary action on the page, which a tab is not. Set these to
+     var(--la-accent) / var(--la-accent-text) to get the solid pill back. */
+  --la-tab-active-bg: var(--la-fill-active);
+  --la-tab-active-text: #fff;
+
+  /* --- Menus --------------------------------------------------------------
+     Action sheets — the item context menu, the OSD settings sheet, the audio
+     and subtitle pickers — land on artwork or on moving video and are read at
+     a glance, so they carry a little more body than the header does. This is
+     an extra veil *layered over* --la-fill-chrome, not a replacement for it:
+     replacing it would defeat the opaque token swaps in 99-fallbacks and the
+     TV block. Set to `transparent` for menus as sheer as the rest of the
+     chrome. */
+  --la-menu-veil: rgba(8, 9, 13, 0.34);
 }
 
 /* linear() is what makes a spring expressible in CSS at all. Old TV webviews do
@@ -225,4 +292,57 @@
     --la-spring-t: 480ms;
     --la-spring-sheet-t: 500ms;
   }
+}
+
+/* --- Detail hero: the two smaller layouts --------------------------------
+   Mobile and TV reserve less of the viewport for the hero than the desktop's
+   --la-hero-height. Both numbers used to sit inline in 01-base.css, and the
+   clear-logo rule in 05-detail.css then repeated the mobile one as a literal —
+   so changing one of the two silently moved the logo off the hero. One token
+   each, referenced everywhere.
+
+   Measured on the live client: 46vh = 428.7px at 430x932, 42vh = 453.6px at
+   1920x1080. Appended after the block above rather than merged into it so the
+   file's existing ordering stays untouched. */
+:root {
+  --la-hero-height-mobile: 46vh;
+  --la-hero-height-tv: 42vh;
+}
+
+/* --- Focus ring ----------------------------------------------------------
+   Measured on a real .layout-tv client (Android TV user agent, 1920x1080):
+   01-base.css draws the ring as `0 0 0 2px var(--la-ground), 0 0 0 3px
+   var(--la-focus)`. Box shadows paint in source order, first on top, so the
+   2px of ground covers all but the outermost pixel of the 3px band — sampling
+   the screenshot at the left edge of a focused card gives exactly one pixel of
+   230,231,231 followed by two of 6,7,10. One pixel across a 1920-wide screen
+   is roughly 0.7 arcmin from three metres, i.e. below what the eye resolves,
+   and on a TV the ring is the only thing telling you where you are.
+
+   So the ring is three bands, and the order below is the paint order:
+     sep   dark gap between the element and the band; keeps the bright part
+           readable when the element itself is bright artwork
+     band  the bright part — the one people actually see
+     halo  dark edge outside it, for when the neighbour is bright artwork
+
+   99-fallbacks.css scales all three up for .layout-tv and swaps --la-focus to
+   solid white; nothing else has to change. --la-focus-clear is the room a
+   container has to keep free so overflow: hidden cannot cut the ring off. */
+:root {
+  --la-focus-sep: 2px;
+  --la-focus-band: 2px;
+  --la-focus-halo: 1px;
+  --la-focus-clear: calc(
+    var(--la-focus-sep) + var(--la-focus-band) + var(--la-focus-halo));
+  --la-focus-shade: rgba(0, 0, 0, 0.92);
+  --la-focus-fill: var(--la-fill-active);
+  --la-focus-scale: 1.06;
+  --la-focus-ring:
+    0 0 0 var(--la-focus-sep) var(--la-focus-shade),
+    0 0 0 calc(var(--la-focus-sep) + var(--la-focus-band)) var(--la-focus),
+    0 0 0 var(--la-focus-clear) var(--la-focus-shade);
+
+  /* The sunken well every text field and checkbox shares. It was written out
+     as a literal in four places in 06-controls.css. */
+  --la-well: inset 0 1px 2px rgba(0, 0, 0, 0.32);
 }

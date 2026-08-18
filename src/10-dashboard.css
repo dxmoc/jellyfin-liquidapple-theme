@@ -50,10 +50,30 @@
   padding-top: 0.4em;
 }
 
-/* --- MUI ---------------------------------------------------------------- */
-.MuiPaper-root,
-.MuiPaper-elevation1,
-.MuiPaper-elevation2 {
+/* --- MUI ----------------------------------------------------------------
+   In 10.11 the admin area is a MUI shell: `.skinHeader` measures 0x0 there and
+   the real top bar is `.MuiAppBar-root`, the real drawer `.MuiDrawer-paper`.
+   02-material puts both in the chrome tier, on purpose — they are the chrome.
+
+   This group used to be a bare `.MuiPaper-root` with `!important`, and both of
+   them are MuiPaper-root too, so it swallowed them: measured on the live
+   dashboard the AppBar and the Drawer were rendering fill rgba(255,255,255,.07),
+   blur(12px) saturate(1.55), --la-edge-soft and a 22px radius — the control
+   tier, verbatim from here, with a pill radius on a full-width fixed bar and a
+   full-height docked drawer. That reads as "the dashboard is unthemed"; it is
+   in fact themed as the wrong tier. Emotion, MUI's CSS-in-JS, is not involved:
+   it injects into <head> and the theme is injected at the end of <body>, so at
+   equal specificity the theme already wins — measured, not assumed.
+
+   So the group is narrowed to what it is actually for — content surfaces:
+   cards, panels, tables. The three chrome-tier papers are excluded and fall
+   back to the tier 02-material assigned them. The elevation1/elevation2
+   selectors are gone with it: MUI never sets those without MuiPaper-root, so
+   they only ever re-captured what the :not() chain had just let through.
+
+   Chained single-argument :not() rather than :not(a, b) — the list form is
+   Selectors 4 and not on the old TV webviews this theme still has to render on. */
+.MuiPaper-root:not(.MuiAppBar-root):not(.MuiDrawer-paper):not(.MuiPopover-paper) {
   background-color: var(--la-fill) !important;
   background-image: none !important;
   -webkit-backdrop-filter: var(--la-material-thin);
@@ -64,9 +84,57 @@
   color: var(--la-text) !important;
 }
 
-.MuiList-root.MuiMenu-list {
-  --la-fill-chrome: rgba(22, 24, 32, 0.74);
+/* --- MUI menus -----------------------------------------------------------
+   Same wrapper-and-pane mistake as the action sheets, nailed down with
+   !important. A MUI menu is two boxes:
+
+     .MuiPopover-paper.MuiPaper-root   ← positions, rounds, clips and scrolls
+       └ .MuiList-root.MuiMenu-list    ← a padded <ul>, nothing more
+
+   Measured on the live dashboard (10.11.11, user menu at 1600x1400): both
+   border boxes came out at exactly 1360 / 44 / 215.5 x 248.8 — identical — and
+   *both* were building glass. The paper took fill rgba(255,255,255,.07) and
+   blur(12px) from the .MuiPaper-root group above; the list took
+   rgba(22,24,32,.74) and blur(22px) from the chrome tier in 02-material. Two
+   fills composite to 75.8% coverage where 74% was asked for, the two rims are
+   drawn on the same 1px edge, and the two blurs stack on one surface.
+
+   What actually made it read as a flat slab: the paper is MUI's scroll
+   container (`overflow: hidden auto`), so it clipped the list's --la-shadow-md
+   away, while the paper's own box-shadow had been replaced with an inset-only
+   --la-edge-soft. The menu had no drop shadow at all.
+
+   The paper keeps the material here, not the list, because the paper is the
+   element that rounds, clips and scrolls — a long menu scrolls its list *past*
+   those corners. An element's own box-shadow is not clipped by its own
+   overflow, so the drop shadow survives.
+
+   Two classes, so this outranks both Emotion's single generated class and the
+   content-surface group above. No !important needed anywhere: nothing else
+   claims these properties on this element once the group excludes it. */
+.MuiPopover-paper.MuiPaper-root {
+  /* Layered, not swapped, exactly like .actionSheetContent: --la-fill-chrome is
+     the token 99-fallbacks turns opaque for no-backdrop-filter, Reduce
+     Transparency and TV, so replacing it would opt every menu out of all
+     three. --la-menu-veil is the same extra body the action sheets carry. */
+  background-color: var(--la-fill-chrome);
+  background-image: linear-gradient(var(--la-menu-veil), var(--la-menu-veil));
+  -webkit-backdrop-filter: var(--la-material);
+  backdrop-filter: var(--la-material);
+  border: none;
   border-radius: var(--la-r-lg);
+  box-shadow: var(--la-edge), var(--la-shadow-md);
+  color: var(--la-text);
+}
+
+/* Demoted to the padded <ul> it is. `.MuiList-root.MuiMenu-list` is a tier-1
+   member of the chrome group in 02-material — two classes, same as this — so
+   this wins on source order alone and needs no !important. */
+.MuiList-root.MuiMenu-list {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
   padding: 0.3em;
 }
 

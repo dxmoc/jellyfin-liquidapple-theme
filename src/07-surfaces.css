@@ -7,8 +7,19 @@
 
 /* --- Dialogs ------------------------------------------------------------- */
 .dialog:not(.dialog-fullscreen) {
-  --la-blur: var(--la-blur-thick);
-  --la-fill-chrome: rgba(22, 24, 32, 0.72);
+  --la-fill-chrome: var(--la-fill-dialog);
+  /* A local `--la-blur: var(--la-blur-thick)` stood here and did nothing:
+     --la-material is declared on :root, so its var() references resolve there
+     and what inherits down is the finished blur(22px) saturate(155%)
+     brightness(104%). Measured on the live media-info dialog: --la-blur read
+     44px on the element while backdrop-filter rendered blur(22px). A thicker
+     filter has to be named directly.
+
+     Action sheets are unaffected — they are also .dialog, but the
+     `.dialog.actionSheet:not(.dialog-fullscreen)` rule below is three classes
+     and turns the wrapper's filter off outright. */
+  -webkit-backdrop-filter: var(--la-material-thick);
+  backdrop-filter: var(--la-material-thick);
   min-width: 13em;
   border: none;
   border-radius: var(--la-r-2xl);
@@ -66,18 +77,78 @@
 }
 
 /* --- Action sheets ------------------------------------------------------
-   The iOS sheet: a rounded glass card with hairline-separated rows. */
+   Every menu in the client is this one component: the item context menu
+   (add to collection / download / edit metadata / …), the OSD settings sheet
+   (aspect ratio / playback speed / quality / …) and the audio and subtitle
+   pickers. Measured on the live client, all three render as
+
+     .dialog.actionSheet.actionsheet-not-fullscreen   ← positioning wrapper
+       └ .actionSheetContent                          ← the pane itself
+           └ .actionSheetScroller
+               ├ .actionSheetTitle          (pickers only)
+               └ .actionSheetMenuItem …
+
+   and the wrapper's border box is *exactly* the pane's border box.
+
+   That mattered, because the wrapper carries the bare `.dialog` class and so
+   matched the chrome tier in 02-material as well — the glass was being built
+   twice. Measured before: both boxes on rgba(22,24,32,.7x) with their own
+   blur(22px) saturate(155%), which composites to ~93% opaque, i.e. the flat
+   dark slab the theme was trying not to be. On top of that the wrapper kept
+   jellyfin's own 1.5px radius plus `overflow: hidden`, so it squared off the
+   pane's rounded corners and clipped its drop shadow away.
+
+   So the wrapper is demoted to what it actually is — a box that positions
+   things — and the pane carries the material alone. Three classes, because
+   the `.dialog:not(.dialog-fullscreen)` group in 02-material is already two
+   and would otherwise win on source order. */
+.dialog.actionSheet:not(.dialog-fullscreen) {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-radius: 0;
+  box-shadow: none;
+  /* jellyfin's own scroller handles the overflow; hidden here only ever cut
+     the pane's shadow off. */
+  overflow: visible;
+}
+
+/* The wrapper's sheen (02-material) and refraction ring sit *behind* the pane
+   — the pane is a solid-enough fill at z-index 3 — so all they ever did was
+   paint the squared-off corners. The pane keeps its own ring; the sheen is
+   dropped rather than moved, so that the Reduce Transparency and TV blocks in
+   99-fallbacks stay complete without touching that file. */
+.dialog.actionSheet:not(.dialog-fullscreen)::before,
+.dialog.actionSheet:not(.dialog-fullscreen)::after {
+  content: none;
+}
+
+/* The iOS sheet: a rounded glass card with hairline-separated rows. */
 .actionSheetContent {
-  --la-blur: var(--la-blur-thick);
-  --la-fill-chrome: rgba(22, 24, 32, 0.74);
-  padding: 0.35em !important;
+  /* Layered, not swapped: --la-fill-chrome is the token 99-fallbacks turns
+     opaque for no-backdrop-filter, Reduce Transparency and TV, so overriding
+     it here would quietly opt every menu out of all three. */
+  background-color: var(--la-fill-chrome);
+  background-image: linear-gradient(var(--la-menu-veil), var(--la-menu-veil));
+  /* A local `--la-blur: var(--la-blur-thick)` is a no-op, which is what the
+     rule here used to do: --la-material is declared on :root, so its var()
+     references are resolved *there* and what inherits down is already the
+     finished blur(22px) saturate(155%) brightness(104%). Measured 22px where
+     44px was asked for. A thicker filter has to be named directly. */
+  -webkit-backdrop-filter: var(--la-material-thick);
+  backdrop-filter: var(--la-material-thick);
+  padding: 0.4em !important;
   border: none;
-  border-radius: var(--la-r-xl);
+  /* Concentric: 22px pane − 0.4em padding ≈ the 16px rows inside it. */
+  border-radius: var(--la-r-lg);
   box-shadow: var(--la-edge), var(--la-shadow-lg);
+  overflow: hidden;
+  position: relative;
 }
 
 .actionSheetContent > h1,
 .actionSheetContent > .actionSheetTitle {
+  margin: 0;
   color: var(--la-text-faint);
   font-size: 0.86em;
   font-weight: 600;
@@ -97,8 +168,49 @@
   transition: background-color var(--la-fast) var(--la-ease-out);
 }
 
-.actionSheetMenuItem:hover {
+.actionSheetMenuItem:hover,
+.actionSheetMenuItem:focus-visible {
   background-color: var(--la-fill-hover);
+}
+
+/* A menu row lights up, it does not shrink. Overrides the shared
+   `.emby-button:active { transform: scale(.96) }` from 02-material — same
+   specificity, later file. */
+.actionSheetMenuItem:active {
+  background-color: var(--la-fill-active);
+  transform: none;
+}
+
+/* jellyfin puts its own colour and font-weight 400 on the label, so nothing
+   the row says about itself — the destructive red, the heavier weight on the
+   selected track — ever reaches the text. Hand both back to the row. */
+.actionSheetMenuItem .listItemBodyText {
+  color: inherit;
+  font-weight: inherit;
+}
+
+/* The value on the right of the OSD settings rows — "Auto", "1x",
+   "Auto 15 Mbps". jellyfin leaves it at full text colour, where it competes
+   with the label it belongs to. */
+.actionSheetMenuItem .listItemAside,
+.actionSheetMenuItem .actionSheetItemAsideText {
+  color: var(--la-text-dim);
+  font-weight: 450;
+}
+
+/* Destructive actions read red, the way they do in an iOS action sheet.
+   jellyfin tags the row itself, so icon and label both inherit — but only
+   thanks to the `color: inherit` above. On its own this rule reddened the
+   icon and left the label white (measured). */
+.actionSheetMenuItem[data-id="delete"] {
+  color: var(--la-danger);
+}
+
+/* The pickers put a check on every row and hide the inactive ones with an
+   inline visibility, so tinting all of them is safe and gives :has-less
+   webviews the accent tick without any fallback query. */
+.actionSheetMenuItem .listItemIcon.check {
+  color: var(--la-accent);
 }
 
 .actionSheetMenuItem:has(.listItemIcon.check:not([style*="hidden"])) {
@@ -106,14 +218,20 @@
   font-weight: 600;
 }
 
-.actionSheetMenuItem:has(.listItemIcon.check:not([style*="hidden"])) .listItemIcon.check {
-  color: var(--la-accent);
+/* Without this the hover fill (0.13) is brighter than the selected fill
+   (0.07) and pointing at a row looks like selecting it. */
+.actionSheetMenuItem:has(.listItemIcon.check:not([style*="hidden"])):hover {
+  background-color: var(--la-fill-active);
 }
 
+/* jellyfin paints the divider as a filled 1px block; the theme draws it as a
+   hairline border. Both at once measured 2.03px — a double line. */
 .actionsheetDivider {
+  height: 0;
+  background: transparent;
   border: none;
   border-top: 1px solid var(--la-rim);
-  margin: 0.3em 0.6em;
+  margin: 0.4em 0.7em;
 }
 
 /* --- Toast / up-next --------------------------------------------------- */
@@ -166,7 +284,11 @@
   box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
 }
 
-.listItemBody > .listItemBodyText:not(.secondary) {
+/* Action-sheet rows are excluded: their label sits in a .listItemBody too, and
+   a colour and weight of its own there overrode everything the menu row was
+   trying to say — the red on a destructive action, the heavier weight on the
+   selected track. Left out, the label simply inherits from the row. */
+.listItemBody > .listItemBodyText:not(.secondary):not(.actionSheetItemText) {
   color: var(--la-text);
   font-weight: 550;
 }

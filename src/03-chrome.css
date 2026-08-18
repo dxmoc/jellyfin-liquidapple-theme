@@ -8,51 +8,224 @@
 .skinHeader {
   padding-top: max(env(safe-area-inset-top), 0px) !important;
   z-index: 1000;
+  /* The refraction ring inherits its width from 02, where it was sized against
+     a dialog. Seven pixels of it top and bottom of a 62px bar is a fifth of the
+     whole pane and reads as a second, blurrier border inside the rim. */
+  --la-refract-width: var(--la-header-refract-w);
   transition:
     transform var(--la-normal) var(--la-ease),
     background-color var(--la-normal) var(--la-ease),
+    -webkit-backdrop-filter var(--la-normal) var(--la-ease),
+    backdrop-filter var(--la-normal) var(--la-ease),
     box-shadow var(--la-normal) var(--la-ease);
 }
 
+/* The bar has to be one height on every page. jellyfin's is not: with section
+   tabs it pads .headerTop at the bottom and then pulls .headerTabs back up by a
+   hard-coded -3.591em so the tab row's *bottom* meets the header's bottom.
+   Measured against our --la-header-h that gave 59.9px on the home page, 62.5px
+   on an item page, and a .headerTop that overflowed its own header by 10.7px —
+   visible only because overflow is hidden. On desktop the tab strip comes out
+   of the flow further down, so that padding can go and the bar is
+   --la-header-h on every page. Mobile keeps both — there the strip is a real
+   second row and the padding is the gap between them. */
 .headerTop {
   align-items: center;
   height: var(--la-header-h);
   padding: 0 0.5em;
 }
 
+/* Desktop only, and jellyfin's own rule is a two-class one, so this needs three
+   to win. On mobile that padding is the gap between two real rows (see the tab
+   strip below) and has to stay. */
+.layout-desktop .withSectionTabs .headerTop {
+  padding-bottom: 0;
+}
+
 .layout-desktop .skinHeader-blurred:not(.osdHeader),
 .layout-desktop .skinHeader-withBackground:not(.osdHeader) {
-  margin: 0.55em;
-  border-radius: var(--la-r-xl);
+  margin: var(--la-chrome-inset);
+  border-radius: var(--la-header-radius);
   box-shadow: var(--la-edge), var(--la-shadow-lg);
   overflow: hidden;
 }
 
-/* Scrolled to the top there is nothing to separate the header from, so it gets
-   out of the way entirely: no fill, no rim, no refraction. A rounded rim drawn
-   around an otherwise invisible bar reads as a stray outlined box floating over
-   the artwork — and over a saturated backdrop it glows in that colour. The
-   glass only appears once the header actually overlaps content. */
-.skinHeader-withBackground.semiTransparent:not(.osdHeader) {
+/* 02's sheen is a 168deg rake, which is right for a dialog and wrong for a bar.
+   The gradient line of a 168deg gradient over a 1584x62 box is 388px long, so
+   the highlight is spent a quarter of the way across and what is left is a
+   bright smudge over the left third — measured on the home page, and the single
+   most obviously wrong thing about the header. A toolbar is lit from directly
+   above, so here the rake becomes a straight top-down falloff.
+   Three classes: the rule this specialises already carries two. */
+.skinHeader.skinHeader-blurred:not(.osdHeader)::before {
+  background: linear-gradient(
+    180deg,
+    var(--la-sheen-top) 0%,
+    var(--la-sheen-mid) 44%,
+    transparent 80%
+  );
+}
+
+/* --- Over hero artwork ---------------------------------------------------
+   On an item page jellyfin marks the header .semiTransparent — and in this
+   version it never takes the class off again: still set at scroll y=1226,
+   measured. So this is not a "scrolled to the top" state, it is the entire item
+   page. Both extremes are wrong. A pane with a rounded rim over untouched
+   artwork reads as a stray outlined box, and over a saturated backdrop the rim
+   glows in that colour; but a bar with *nothing* behind it lets the tag pills
+   and the body copy slide straight under naked white icons, which is what it
+   did halfway down every item page.
+   What iOS does over a photo is neither: no pane, no rim, just a scrim. */
+.skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader) {
   background: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+  border-radius: 0;
   box-shadow: none;
+  /* No pane left to clip, and the scrim has to reach past the float inset out
+     to the viewport edge. overflow alone is not enough: jellyfin declares
+     `contain: content` on .skinHeader, and the paint containment in that clips
+     to the padding box no matter what overflow says — measured, the scrim was
+     computing at the right size and simply not painting outside the bar.
+     Layout and style containment stay; only the clip goes. An engine too old
+     for `contain` drops this declaration and jellyfin's along with it, so it
+     was never clipping there either. */
+  overflow: visible;
+  contain: layout style;
 }
 
-.skinHeader-withBackground.semiTransparent:not(.osdHeader)::before,
-.skinHeader-withBackground.semiTransparent:not(.osdHeader)::after {
-  display: none;
+/* z-index 2 puts the scrim above the pane on ::after, so the two cross-fade
+   cleanly; the header's own children sit at 3 and stay clear of both. */
+.skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader)::before {
+  content: "";
+  display: block;
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  bottom: auto;
+  left: 0;
+  height: calc(100% + var(--la-header-scrim-fade));
+  border-radius: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    var(--la-header-scrim) 0%,
+    var(--la-header-scrim-mid) 54%,
+    transparent 100%
+  );
 }
 
-/* Icons still need to stay readable against bright artwork. */
+/* On desktop the bar floats, so the scrim has to grow back out to the viewport
+   edges — otherwise it is a dark rectangle with 8px of bright artwork framing
+   it on three sides. */
+.layout-desktop
+  .skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader)::before {
+  top: calc(-1 * var(--la-chrome-inset));
+  right: calc(-1 * var(--la-chrome-inset));
+  left: calc(-1 * var(--la-chrome-inset));
+  height: calc(
+    100% + var(--la-chrome-inset) + var(--la-header-scrim-fade)
+  );
+}
+
+/* A scrim keeps the icons readable, but it cannot stop the tag pills and the
+   cast row from sliding *through* them — two foreground layers with nothing
+   between them. Below the fold the bar has to become the same pane it is on
+   every other page, and since jellyfin never takes .semiTransparent off, the
+   only thing left that knows how far the page has scrolled is a scroll-driven
+   animation.
+
+   So ::after — which has no refraction ring to draw without a pane — becomes
+   the pane itself, held at opacity 0 and faded in by scroll below. Doing it on
+   a pseudo rather than on .skinHeader means the only animated property is
+   opacity: animating `backdrop-filter` from `none` was measured NOT to take in
+   this Chrome (the fill and the rim arrived, the blur never did, and the tag
+   pills stayed razor sharp under the bar), and opacity cannot fail that way.
+   Without scroll timelines it simply stays invisible and the scrim is the whole
+   story — which is the fallback this is built on top of. */
+.skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader)::after {
+  content: "";
+  display: block;
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  /* 02 draws this pseudo as a masked ring; here it is a solid pane. */
+  padding: 0;
+  -webkit-mask: none;
+  mask: none;
+  /* flush on mobile, so square — the capsule radius is added on desktop below */
+  border-radius: 0;
+  background: var(--la-fill-chrome);
+  -webkit-backdrop-filter: var(--la-material);
+  backdrop-filter: var(--la-material);
+  box-shadow: var(--la-edge), var(--la-shadow-lg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The bar only floats on desktop, so only there does the pane get the capsule. */
+.layout-desktop
+  .skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader)::after {
+  border-radius: var(--la-header-radius);
+}
+
+@supports (animation-timeline: scroll()) {
+  .skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader)::after {
+    animation: la-header-pane-in linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 var(--la-header-materialise-at);
+  }
+
+  .skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader)::before {
+    animation: la-header-scrim-out linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 var(--la-header-materialise-at);
+  }
+}
+
+/* `both` is what holds the end states outside the range: nothing before the
+   scroll starts, full pane after it. */
+@keyframes la-header-pane-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Out early. Two dark layers stacked read as a smudge, and the scrim reaches
+   past the pane's edges, which looks wrong the moment the pane has edges. */
+@keyframes la-header-scrim-out {
+  from {
+    opacity: 1;
+  }
+
+  60% {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* The scrim does most of the work; this catches the rest on a frame that is
+   bright right where an icon happens to sit. */
 .skinHeader-withBackground.semiTransparent:not(.osdHeader) .headerButton,
 .skinHeader-withBackground.semiTransparent:not(.osdHeader) .pageTitle {
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  text-shadow: var(--la-header-icon-shadow);
 }
 
+/* -100% clears the box but not --la-shadow-lg, which reaches 84px below it and
+   would leave a dark smear across the top of the page. */
 .headroom--unpinned:not(.osdHeader) {
-  transform: translateY(calc(-100% - 1em));
+  transform: translateY(calc(-100% - var(--la-header-hide-clear)));
 }
 
 /* --- Header buttons ------------------------------------------------------- */
@@ -99,6 +272,39 @@
   border: none;
 }
 
+/* On desktop jellyfin overlays the strip on the icon row: it anchors the
+   strip's bottom edge to the header's bottom edge with a hard-coded
+   margin-top: -3.591em, tuned for its own full-height underline tabs. Against a
+   34px capsule that left 19.1px of air above it and 6.8px below — measured, and
+   plainly bottom-heavy on screen. Out of the flow it centres in whatever height
+   the bar has, and the bar's height stops depending on it.
+
+   Mobile is deliberately excluded. There jellyfin drops the negative margin and
+   the strip is a genuine second row (measured: header 99.9px, strip at y=62.3),
+   which is the only thing that fits — 430px will not hold six icons, a wordmark
+   and a centred capsule on one line, and forcing it made the capsule land on
+   top of the logo and the shuffle button.
+
+   top/bottom: 0 plus jellyfin's own `align-self: center` is what does the
+   centring: box alignment applies to absolutely positioned boxes, so `center`
+   sizes the strip to its content and centres it in the inset area instead of
+   stretching. If jellyfin ever drops that, the strip stretches and the flex
+   centring here catches the capsule anyway.
+   .hide still wins over the display: jellyfin declares that one !important. */
+.layout-desktop .skinHeader .headerTabs.sectionTabs {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  /* the strip now spans the whole bar, so only the capsule may take clicks */
+  pointer-events: none;
+}
+
 .sectionTabs .emby-tabs {
   display: inline-flex;
   margin: 0.15em 0.6em 0.55em;
@@ -107,8 +313,16 @@
   background: var(--la-fill-sunken);
   -webkit-backdrop-filter: var(--la-material-thin);
   backdrop-filter: var(--la-material-thin);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.34), inset 0 0 0 1px var(--la-rim);
+  box-shadow: var(--la-edge-sunken);
   overflow: hidden;
+  /* 7px of refraction ring on a 34px capsule is 40% of it from each side */
+  --la-refract-width: var(--la-tabs-refract-w);
+}
+
+/* Centred by the flex parent above, so the strip's own offsets go. */
+.layout-desktop .skinHeader .headerTabs .emby-tabs {
+  margin: 0;
+  pointer-events: auto;
 }
 
 .sectionTabs .emby-tab-button {
@@ -135,10 +349,13 @@
   color: var(--la-text);
 }
 
-.sectionTabs .emby-tab-button-active {
-  background-color: var(--la-accent);
-  box-shadow: var(--la-shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  color: var(--la-accent-text);
+/* The selected segment is glass, not a solid accent pill — same reasoning as
+   .navMenuOption-selected, and --la-tab-active-bg switches it back. */
+.sectionTabs .emby-tab-button-active,
+.sectionTabs .emby-tab-button-active:hover {
+  background-color: var(--la-tab-active-bg);
+  box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
+  color: var(--la-tab-active-text);
   font-weight: 600;
 }
 
@@ -147,19 +364,30 @@
   display: none !important;
 }
 
-/* --- Drawer -------------------------------------------------------------- */
+/* --- Drawer --------------------------------------------------------------
+   A local `--la-blur: var(--la-blur-thick)` used to stand here and did nothing.
+   --la-material is declared on :root, so its var() references are substituted
+   *there*; what inherits down is the finished string blur(22px) saturate(…),
+   and overriding an ingredient afterwards has nothing left to feed. Measured on
+   the open drawer: --la-blur computed to 44px while backdrop-filter stayed at
+   blur(22px). The thick material has to be named directly.
+   Honest note on the payoff: side by side at fill 0.66 the difference is small
+   — a little less of the artwork behind bleeding through. It is the documented
+   intent, not a dramatic change. --la-fill-chrome above is *not* affected by
+   any of this; 02 consumes that one directly, so the override there works. */
 .mainDrawer,
 .drawer-open {
-  --la-blur: var(--la-blur-thick);
   --la-fill-chrome: rgba(14, 16, 22, 0.66);
+  -webkit-backdrop-filter: var(--la-material-thick);
+  backdrop-filter: var(--la-material-thick);
   border-right: none;
   box-shadow: var(--la-edge), var(--la-shadow-lg);
 }
 
 .layout-desktop .mainDrawer {
-  margin: 0.55em;
+  margin: var(--la-chrome-inset);
   border-radius: var(--la-r-xl);
-  height: calc(100% - 1.1em);
+  height: calc(100% - 2 * var(--la-chrome-inset));
   overflow: hidden;
 }
 
@@ -171,7 +399,7 @@
 
    !important because the transform jellyfin sets is an inline style. */
 .layout-desktop .mainDrawer:not(.drawer-open) {
-  transform: translateX(-0.55em) !important;
+  transform: translateX(calc(-1 * var(--la-chrome-inset))) !important;
 }
 
 .mainDrawer-scrollContainer {
@@ -242,7 +470,7 @@
   background-color: var(--la-fill-sunken);
   -webkit-backdrop-filter: var(--la-material-thin);
   backdrop-filter: var(--la-material-thin);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 0 0 1px var(--la-rim);
+  box-shadow: var(--la-edge-sunken);
   border: none;
   padding-inline: 1.1em;
   color: var(--la-text);

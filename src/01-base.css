@@ -148,11 +148,24 @@ body:has(#itemDetailPage:not(.hide)) .backgroundContainer.withBackdrop {
 }
 
 .layout-tv .itemBackdrop {
-  height: 42vh;
+  height: var(--la-hero-height-tv);
 }
 
+/* Mobile is the one layout where this element is not a spacer: jellyfin puts
+   the picture on #itemBackdrop itself here (verified live — .backdropImage is
+   never created below 1000px of viewport width), and it falls back
+   Backdrop -> ParentBackdrop -> Primary, so on a media item the box is
+   practically always filled. Item types jellyfin refuses to give a banner —
+   Person, Book — are the exception; see the note at the end of 05-detail.css. */
 .layout-mobile .itemBackdrop {
-  height: 46vh;
+  height: var(--la-hero-height-mobile);
+  /* Jellyfin pushes this box down by 3em on mobile (measured: 39.36px at the
+     13.12px root size it uses there) to clear the header. Desktop gets no such
+     margin — the artwork runs up under the floating header, which is the whole
+     point of a full-bleed hero — so mobile was the odd one out, and every
+     position derived from the hero had to carry that 3em as a magic constant.
+     Dropping it instead of encoding it keeps the two layouts on one formula. */
+  margin-top: 0;
   -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 100%);
   mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 100%);
 }
@@ -268,11 +281,16 @@ a:hover,
 
 /* --- Focus ---------------------------------------------------------------
    Apple rings the element rather than outlining it: a soft halo, no hard box. */
-:focus-visible:not(.emby-input):not(.emby-textarea):not(.emby-select):not(select) {
+/* One ring for the whole theme. It used to be two literals here, and because
+   box-shadows paint in source order — first on top — the 2px of ground covered
+   all but the outermost pixel of the band: measured 1px of visible white. The
+   token draws shade, band, shade so the band survives, and 99-fallbacks can
+   widen it for TV from one place.
+   .emby-checkbox is excluded because the focusable input is 1x1px — the ring
+   belongs on its sibling .checkboxOutline, which 06-controls.css handles. */
+:focus-visible:not(.emby-input):not(.emby-textarea):not(.emby-select):not(select):not(.emby-checkbox) {
   outline: none;
-  box-shadow:
-    0 0 0 2px var(--la-ground),
-    0 0 0 3px var(--la-focus);
+  box-shadow: var(--la-focus-ring);
 }
 
 /* --- Scrollbars ----------------------------------------------------------- */

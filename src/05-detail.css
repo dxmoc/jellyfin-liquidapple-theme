@@ -104,13 +104,39 @@
    On desktop the hero artwork already carries the item, so the poster is off
    by default — the two of them competing for the same band is what made the
    first attempt look cluttered. --la-detail-poster brings it back. */
-.layout-desktop .detailImageContainer .card {
+/* TV is listed with desktop, not left out of it: it has the same full-bleed
+   hero and the same reason to keep the poster off by default. Without the
+   selector the token never reached it and jellyfin's raw poster rendered at
+   480x720 over the hero (measured at 1920x1080). */
+.layout-desktop .detailImageContainer .card,
+.layout-tv .detailImageContainer .card {
   display: var(--la-detail-poster);
   margin: auto auto 0;
   width: 22vh !important;
   float: none;
   position: relative !important;
   inset: auto;
+}
+
+/* Mobile has a second .detailImageContainer — the one in .detailRibbon carries
+   .hide-mobile, and jellyfin renders a live one inside .detailPagePrimaryContent
+   instead, which is why a single querySelector kept reporting display:none while
+   a poster was plainly on screen. It overlaps the clear logo now that the logo
+   actually renders here: measured at 430x932, poster 26.4,383.6 125.7x188.6
+   against logo 47.3,286.3 335.4x139.8, so the poster's top-left corner sat on
+   the logo's lower-left.
+
+   Only where the logo really renders, though. Unlike desktop, mobile keeps its
+   poster otherwise: it is jellyfin's own mobile layout, it is the only image a
+   Person page has at all, and the 6 of 275 items without a logo still want
+   something next to their chips. Same .detailLogo:not(.hide) test the text
+   title uses further down, so both fall back on one signal. Without :has the
+   poster simply stays — jellyfin's default, and no worse than before. */
+@supports selector(:has(*)) {
+  .layout-mobile .itemDetailPage:has(.detailLogo:not(.hide))
+    .detailImageContainer .card {
+    display: var(--la-detail-poster);
+  }
 }
 
 .detailImageContainer .card {
@@ -150,9 +176,38 @@
   );
 }
 
+/* TV had no anchor at all — .detailLogo is position: absolute with no `top`,
+   so it fell back to its static position and floated wherever the flow left
+   it. Same construction as desktop (TV does get --la-hero-overlap, the
+   .detailPageWrapperContainer rule at the top of this file covers both), only
+   against the TV hero's own height. */
+.layout-tv .detailLogo {
+  top: calc(
+    var(--la-hero-height-tv) - var(--la-hero-overlap) - var(--la-detail-logo-h) - 0.4em
+  );
+}
+
+/* Same anchor as desktop, against the mobile hero's own height. The 46vh used
+   to be written out here as a literal, one file away from the rule that sets
+   it — now both read --la-hero-height-mobile.
+
+   display has to be repeated here. The bare `.detailLogo` rule above is one
+   class (0,1,0) and jellyfin hides the logo on this layout through a
+   two-class selector, so the token never reached mobile: measured on the live
+   client, .detailLogo computed to display:none with its image already loaded
+   and --la-detail-logo resolving to block. Same trap as the material groups —
+   a specialisation of a member needs at least as many classes as the rule it
+   has to beat. */
 .layout-mobile .detailLogo {
+  display: var(--la-detail-logo);
   width: 78vw;
-  top: calc(46vh - var(--la-hero-overlap) - var(--la-detail-logo-h) - 0.2em);
+  /* No --la-hero-overlap term here, unlike desktop. The overlap is applied by
+     the .detailPageWrapperContainer rule at the top of this file, and that rule
+     is desktop/TV only — on mobile the info block starts exactly at the bottom
+     edge of the hero. Subtracting an overlap that is never applied is what put
+     the logo 172.5px above where it belonged (measured at 430x932: logo bottom
+     295.6, hero bottom 468.1). */
+  top: calc(var(--la-hero-height-mobile) - var(--la-detail-logo-h) - 0.2em);
 }
 
 /* The text title steps aside only where a logo actually rendered. Jellyfin puts
@@ -470,10 +525,22 @@
 
    :has has no fallback on old TV webviews, so this is an override on top of the
    unconditional rule rather than a rewrite of it — without :has the theme keeps
-   its previous behaviour. Mobile and TV use a different mechanism (#itemBackdrop
-   carries the image itself) and are NOT covered here. */
+   its previous behaviour.
+
+   The layout scoping on the token block is not cosmetic. Measured on the live
+   client at 430x932: mobile never gets a .backdropImage at all — jellyfin only
+   builds one above 1000px of viewport width — so an unscoped
+   :root:not(:has(.backdropImage)) reported "no artwork" on *every* mobile item,
+   including ones whose hero was fully painted. The visible damage was the clear
+   logo: --la-detail-logo resolved to none and --la-detail-title to block on a
+   page where .detailLogo had its image loaded and ready. TV is listed alongside
+   desktop because it works the desktop way — #itemBackdrop stays an empty
+   spacer there and the picture is .backdropImage (measured at 1920x1080, both
+   with backdrops on and off). Mobile is the odd one out — see the note at the
+   bottom of this file for why it gets no collapse rule of its own. */
 @supports selector(:has(*)) {
-  :root:not(:has(.backdropImage)) {
+  :root.layout-desktop:not(:has(.backdropImage)),
+  :root.layout-tv:not(:has(.backdropImage)) {
     --la-hero-overlap: 0vh;
     /* The logo is positioned off the hero, and without artwork there is no
        hero to position against — so hand the page back to the text title. */
@@ -481,11 +548,45 @@
     --la-detail-title: block;
   }
 
-  .layout-desktop:not(:has(.backdropImage)) .itemBackdrop {
+  /* TV was getting the token half of this and not the geometry half, so the
+     hole was still there: measured at 1920x1080 with backdrops off,
+     #itemBackdrop rendered 1920x454 — 42vh of nothing — with no .backdropImage
+     anywhere on the page. Same signal, same two rules. */
+  .layout-desktop:not(:has(.backdropImage)) .itemBackdrop,
+  .layout-tv:not(:has(.backdropImage)) .itemBackdrop {
     height: 0;
   }
 
-  .layout-desktop:not(:has(.backdropImage)) .detailPageWrapperContainer {
+  .layout-desktop:not(:has(.backdropImage)) .detailPageWrapperContainer,
+  .layout-tv:not(:has(.backdropImage)) .detailPageWrapperContainer {
     padding-top: calc(var(--la-header-h) + 2em);
   }
 }
+
+/* --- Why mobile has no hero-collapse rule --------------------------------
+   Measured, not assumed. On mobile the picture lives on #itemBackdrop itself,
+   so .backdropImage is the wrong test — but the right one turns out to be a
+   bad trade, and this is the reasoning so it does not get "fixed" again:
+
+   1. The hole is far rarer here than on desktop. Desktop reserved 72vh on
+      every item because jellyfin ships backdrops off; mobile ignores that
+      setting entirely and falls back Backdrop -> ParentBackdrop -> Primary.
+      Across all 1880 items on the reference server, none lacks every image.
+      What is left is the item types jellyfin refuses a banner — Person, Book.
+      A Person page really does show --la-hero-height-mobile of nothing
+      (measured 428.7px at 430x932).
+
+   2. The only signal CSS can read is jellyfin's own lazy-loader marker,
+      #itemBackdrop[class*="lazy-image-fadein"], and it lands late. Timed with
+      a MutationObserver on a cold load: the element is in the DOM at t=1156ms
+      and the class arrives at t=1733ms — 577ms in which a height tied to it
+      would read "no artwork" on an item that has one. That buys a rare empty
+      hero on Person pages at the price of the info block rendering 428.7px too
+      high, then jumping down, on every film and series.
+
+   The desktop signal does not have this problem: backdrop.js inserts
+   .backdropImage as soon as the item metadata is in, before the picture has
+   loaded, so there the test is already true on first paint.
+
+   If the Person-page hero is worth fixing later, the honest fix is a jellyfin
+   -side one (a class set from item type at render time), not a CSS guess. */

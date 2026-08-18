@@ -58,6 +58,12 @@
   --la-fill-sunken: rgba(0, 0, 0, 0.24);
   --la-fill-thick: rgba(26, 28, 36, 0.60);
   --la-fill-chrome: rgba(16, 18, 24, 0.52);
+  /* Dialogs and action sheets sit *on top of* chrome, so they run denser.
+     This has to be its own root token rather than a local override of
+     --la-fill-chrome: a local override shadows the root value, and the
+     opaque swaps in 99-fallbacks.css all target the root — so no-backdrop-
+     filter, Reduce Transparency and TV would never have reached a dialog. */
+  --la-fill-dialog: rgba(22, 24, 32, 0.72);
 
   /* --- Rim light -----------------------------------------------------------
      A pane of glass is lit from above and shadowed below. This one composite
@@ -209,6 +215,67 @@
   /* Shared left edge for hero text, body copy and the section rows. Raise to
      ~33vw together with --la-detail-poster: block. */
   --la-hero-inset: var(--la-gutter);
+
+  /* --- Header chrome -------------------------------------------------------
+     The header is the one pane that is 25 times wider than it is tall, so the
+     material recipe in 02 — written for a dialog — needs its own numbers here.
+     Everything below was measured on the live client at 1600x1200; see the
+     comments in 03-chrome.css for what each one is compensating for. */
+
+  /* How far the floating chrome (header, drawer) sits off the viewport edge.
+     jellyfin parks the closed drawer against that same number, so it is shared
+     rather than repeated. */
+  --la-chrome-inset: 0.55em;
+  /* A 62px bar at --la-r-xl is *almost* a capsule, which reads as an accident.
+     Set this to var(--la-r-xl) for a softened rectangle instead. */
+  --la-header-radius: var(--la-r-pill);
+  /* --la-refract-width is 7px, a fifth of the header's height and nearly half
+     the tab capsule's. The ring has to scale with the pane it hugs. */
+  --la-header-refract-w: 4px;
+  --la-tabs-refract-w: 2.5px;
+  /* The specular sheen, straight top-down instead of 02's diagonal rake — the
+     rake's gradient line is only 388px long on a 1584px bar. */
+  --la-sheen-top: rgba(255, 255, 255, 0.11);
+  --la-sheen-mid: rgba(255, 255, 255, 0.035);
+  /* Over hero artwork jellyfin drops the header's background entirely and never
+     brings it back, so the bar needs *something* that keeps content readable
+     when it scrolls underneath. A scrim, the way iOS handles a nav bar over a
+     photo: no pane, no rim, just a falloff. --la-header-scrim-fade is how far
+     past the bar it keeps fading. */
+  --la-header-scrim: rgba(6, 7, 10, 0.62);
+  --la-header-scrim-mid: rgba(6, 7, 10, 0.22);
+  --la-header-scrim-fade: 1.8em;
+  /* How far the item page has to scroll before the bar stops being a scrim and
+     becomes the same glass pane it is everywhere else. Roughly two bar heights;
+     0px would mean the pane is always there. Needs scroll-driven animations —
+     without them the scrim is the whole story. */
+  --la-header-materialise-at: 130px;
+  --la-header-icon-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  /* Clearance for the hidden header. --la-shadow-lg reaches 84px below the box
+     (24px offset + 60px blur), so -100% alone leaves a dark smear across the
+     top of the page. Measured on mobile, where jellyfin actually uses headroom:
+     6em was still 5px short. */
+  --la-header-hide-clear: 8em;
+  /* Inset trough: a pressed-in well for the tab strip and the search field. */
+  --la-edge-sunken:
+    inset 0 1px 2px rgba(0, 0, 0, 0.32),
+    inset 0 0 0 1px var(--la-rim);
+  /* The selected segment. Glass, like every other "this one is on" state in the
+     theme (see .navMenuOption-selected) — a solid --la-accent pill would claim
+     to be the primary action on the page, which a tab is not. Set these to
+     var(--la-accent) / var(--la-accent-text) to get the solid pill back. */
+  --la-tab-active-bg: var(--la-fill-active);
+  --la-tab-active-text: #fff;
+
+  /* --- Menus --------------------------------------------------------------
+     Action sheets — the item context menu, the OSD settings sheet, the audio
+     and subtitle pickers — land on artwork or on moving video and are read at
+     a glance, so they carry a little more body than the header does. This is
+     an extra veil *layered over* --la-fill-chrome, not a replacement for it:
+     replacing it would defeat the opaque token swaps in 99-fallbacks and the
+     TV block. Set to `transparent` for menus as sheer as the rest of the
+     chrome. */
+  --la-menu-veil: rgba(8, 9, 13, 0.34);
 }
 
 /* linear() is what makes a spring expressible in CSS at all. Old TV webviews do
@@ -231,6 +298,59 @@
     --la-spring-t: 480ms;
     --la-spring-sheet-t: 500ms;
   }
+}
+
+/* --- Detail hero: the two smaller layouts --------------------------------
+   Mobile and TV reserve less of the viewport for the hero than the desktop's
+   --la-hero-height. Both numbers used to sit inline in 01-base.css, and the
+   clear-logo rule in 05-detail.css then repeated the mobile one as a literal —
+   so changing one of the two silently moved the logo off the hero. One token
+   each, referenced everywhere.
+
+   Measured on the live client: 46vh = 428.7px at 430x932, 42vh = 453.6px at
+   1920x1080. Appended after the block above rather than merged into it so the
+   file's existing ordering stays untouched. */
+:root {
+  --la-hero-height-mobile: 46vh;
+  --la-hero-height-tv: 42vh;
+}
+
+/* --- Focus ring ----------------------------------------------------------
+   Measured on a real .layout-tv client (Android TV user agent, 1920x1080):
+   01-base.css draws the ring as `0 0 0 2px var(--la-ground), 0 0 0 3px
+   var(--la-focus)`. Box shadows paint in source order, first on top, so the
+   2px of ground covers all but the outermost pixel of the 3px band — sampling
+   the screenshot at the left edge of a focused card gives exactly one pixel of
+   230,231,231 followed by two of 6,7,10. One pixel across a 1920-wide screen
+   is roughly 0.7 arcmin from three metres, i.e. below what the eye resolves,
+   and on a TV the ring is the only thing telling you where you are.
+
+   So the ring is three bands, and the order below is the paint order:
+     sep   dark gap between the element and the band; keeps the bright part
+           readable when the element itself is bright artwork
+     band  the bright part — the one people actually see
+     halo  dark edge outside it, for when the neighbour is bright artwork
+
+   99-fallbacks.css scales all three up for .layout-tv and swaps --la-focus to
+   solid white; nothing else has to change. --la-focus-clear is the room a
+   container has to keep free so overflow: hidden cannot cut the ring off. */
+:root {
+  --la-focus-sep: 2px;
+  --la-focus-band: 2px;
+  --la-focus-halo: 1px;
+  --la-focus-clear: calc(
+    var(--la-focus-sep) + var(--la-focus-band) + var(--la-focus-halo));
+  --la-focus-shade: rgba(0, 0, 0, 0.92);
+  --la-focus-fill: var(--la-fill-active);
+  --la-focus-scale: 1.06;
+  --la-focus-ring:
+    0 0 0 var(--la-focus-sep) var(--la-focus-shade),
+    0 0 0 calc(var(--la-focus-sep) + var(--la-focus-band)) var(--la-focus),
+    0 0 0 var(--la-focus-clear) var(--la-focus-shade);
+
+  /* The sunken well every text field and checkbox shares. It was written out
+     as a literal in four places in 06-controls.css. */
+  --la-well: inset 0 1px 2px rgba(0, 0, 0, 0.32);
 }
 
 /* ==== 01-base.css ==== */
@@ -384,11 +504,24 @@ body:has(#itemDetailPage:not(.hide)) .backgroundContainer.withBackdrop {
 }
 
 .layout-tv .itemBackdrop {
-  height: 42vh;
+  height: var(--la-hero-height-tv);
 }
 
+/* Mobile is the one layout where this element is not a spacer: jellyfin puts
+   the picture on #itemBackdrop itself here (verified live — .backdropImage is
+   never created below 1000px of viewport width), and it falls back
+   Backdrop -> ParentBackdrop -> Primary, so on a media item the box is
+   practically always filled. Item types jellyfin refuses to give a banner —
+   Person, Book — are the exception; see the note at the end of 05-detail.css. */
 .layout-mobile .itemBackdrop {
-  height: 46vh;
+  height: var(--la-hero-height-mobile);
+  /* Jellyfin pushes this box down by 3em on mobile (measured: 39.36px at the
+     13.12px root size it uses there) to clear the header. Desktop gets no such
+     margin — the artwork runs up under the floating header, which is the whole
+     point of a full-bleed hero — so mobile was the odd one out, and every
+     position derived from the hero had to carry that 3em as a magic constant.
+     Dropping it instead of encoding it keeps the two layouts on one formula. */
+  margin-top: 0;
   -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 100%);
   mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 100%);
 }
@@ -504,11 +637,16 @@ a:hover,
 
 /* --- Focus ---------------------------------------------------------------
    Apple rings the element rather than outlining it: a soft halo, no hard box. */
-:focus-visible:not(.emby-input):not(.emby-textarea):not(.emby-select):not(select) {
+/* One ring for the whole theme. It used to be two literals here, and because
+   box-shadows paint in source order — first on top — the 2px of ground covered
+   all but the outermost pixel of the band: measured 1px of visible white. The
+   token draws shade, band, shade so the band survives, and 99-fallbacks can
+   widen it for TV from one place.
+   .emby-checkbox is excluded because the focusable input is 1x1px — the ring
+   belongs on its sibling .checkboxOutline, which 06-controls.css handles. */
+:focus-visible:not(.emby-input):not(.emby-textarea):not(.emby-select):not(select):not(.emby-checkbox) {
   outline: none;
-  box-shadow:
-    0 0 0 2px var(--la-ground),
-    0 0 0 3px var(--la-focus);
+  box-shadow: var(--la-focus-ring);
 }
 
 /* --- Scrollbars ----------------------------------------------------------- */
@@ -725,51 +863,224 @@ a:hover,
 .skinHeader {
   padding-top: max(env(safe-area-inset-top), 0px) !important;
   z-index: 1000;
+  /* The refraction ring inherits its width from 02, where it was sized against
+     a dialog. Seven pixels of it top and bottom of a 62px bar is a fifth of the
+     whole pane and reads as a second, blurrier border inside the rim. */
+  --la-refract-width: var(--la-header-refract-w);
   transition:
     transform var(--la-normal) var(--la-ease),
     background-color var(--la-normal) var(--la-ease),
+    -webkit-backdrop-filter var(--la-normal) var(--la-ease),
+    backdrop-filter var(--la-normal) var(--la-ease),
     box-shadow var(--la-normal) var(--la-ease);
 }
 
+/* The bar has to be one height on every page. jellyfin's is not: with section
+   tabs it pads .headerTop at the bottom and then pulls .headerTabs back up by a
+   hard-coded -3.591em so the tab row's *bottom* meets the header's bottom.
+   Measured against our --la-header-h that gave 59.9px on the home page, 62.5px
+   on an item page, and a .headerTop that overflowed its own header by 10.7px —
+   visible only because overflow is hidden. On desktop the tab strip comes out
+   of the flow further down, so that padding can go and the bar is
+   --la-header-h on every page. Mobile keeps both — there the strip is a real
+   second row and the padding is the gap between them. */
 .headerTop {
   align-items: center;
   height: var(--la-header-h);
   padding: 0 0.5em;
 }
 
+/* Desktop only, and jellyfin's own rule is a two-class one, so this needs three
+   to win. On mobile that padding is the gap between two real rows (see the tab
+   strip below) and has to stay. */
+.layout-desktop .withSectionTabs .headerTop {
+  padding-bottom: 0;
+}
+
 .layout-desktop .skinHeader-blurred:not(.osdHeader),
 .layout-desktop .skinHeader-withBackground:not(.osdHeader) {
-  margin: 0.55em;
-  border-radius: var(--la-r-xl);
+  margin: var(--la-chrome-inset);
+  border-radius: var(--la-header-radius);
   box-shadow: var(--la-edge), var(--la-shadow-lg);
   overflow: hidden;
 }
 
-/* Scrolled to the top there is nothing to separate the header from, so it gets
-   out of the way entirely: no fill, no rim, no refraction. A rounded rim drawn
-   around an otherwise invisible bar reads as a stray outlined box floating over
-   the artwork — and over a saturated backdrop it glows in that colour. The
-   glass only appears once the header actually overlaps content. */
-.skinHeader-withBackground.semiTransparent:not(.osdHeader) {
+/* 02's sheen is a 168deg rake, which is right for a dialog and wrong for a bar.
+   The gradient line of a 168deg gradient over a 1584x62 box is 388px long, so
+   the highlight is spent a quarter of the way across and what is left is a
+   bright smudge over the left third — measured on the home page, and the single
+   most obviously wrong thing about the header. A toolbar is lit from directly
+   above, so here the rake becomes a straight top-down falloff.
+   Three classes: the rule this specialises already carries two. */
+.skinHeader.skinHeader-blurred:not(.osdHeader)::before {
+  background: linear-gradient(
+    180deg,
+    var(--la-sheen-top) 0%,
+    var(--la-sheen-mid) 44%,
+    transparent 80%
+  );
+}
+
+/* --- Over hero artwork ---------------------------------------------------
+   On an item page jellyfin marks the header .semiTransparent — and in this
+   version it never takes the class off again: still set at scroll y=1226,
+   measured. So this is not a "scrolled to the top" state, it is the entire item
+   page. Both extremes are wrong. A pane with a rounded rim over untouched
+   artwork reads as a stray outlined box, and over a saturated backdrop the rim
+   glows in that colour; but a bar with *nothing* behind it lets the tag pills
+   and the body copy slide straight under naked white icons, which is what it
+   did halfway down every item page.
+   What iOS does over a photo is neither: no pane, no rim, just a scrim. */
+.skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader) {
   background: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+  border-radius: 0;
   box-shadow: none;
+  /* No pane left to clip, and the scrim has to reach past the float inset out
+     to the viewport edge. overflow alone is not enough: jellyfin declares
+     `contain: content` on .skinHeader, and the paint containment in that clips
+     to the padding box no matter what overflow says — measured, the scrim was
+     computing at the right size and simply not painting outside the bar.
+     Layout and style containment stay; only the clip goes. An engine too old
+     for `contain` drops this declaration and jellyfin's along with it, so it
+     was never clipping there either. */
+  overflow: visible;
+  contain: layout style;
 }
 
-.skinHeader-withBackground.semiTransparent:not(.osdHeader)::before,
-.skinHeader-withBackground.semiTransparent:not(.osdHeader)::after {
-  display: none;
+/* z-index 2 puts the scrim above the pane on ::after, so the two cross-fade
+   cleanly; the header's own children sit at 3 and stay clear of both. */
+.skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader)::before {
+  content: "";
+  display: block;
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  bottom: auto;
+  left: 0;
+  height: calc(100% + var(--la-header-scrim-fade));
+  border-radius: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    var(--la-header-scrim) 0%,
+    var(--la-header-scrim-mid) 54%,
+    transparent 100%
+  );
 }
 
-/* Icons still need to stay readable against bright artwork. */
+/* On desktop the bar floats, so the scrim has to grow back out to the viewport
+   edges — otherwise it is a dark rectangle with 8px of bright artwork framing
+   it on three sides. */
+.layout-desktop
+  .skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader)::before {
+  top: calc(-1 * var(--la-chrome-inset));
+  right: calc(-1 * var(--la-chrome-inset));
+  left: calc(-1 * var(--la-chrome-inset));
+  height: calc(
+    100% + var(--la-chrome-inset) + var(--la-header-scrim-fade)
+  );
+}
+
+/* A scrim keeps the icons readable, but it cannot stop the tag pills and the
+   cast row from sliding *through* them — two foreground layers with nothing
+   between them. Below the fold the bar has to become the same pane it is on
+   every other page, and since jellyfin never takes .semiTransparent off, the
+   only thing left that knows how far the page has scrolled is a scroll-driven
+   animation.
+
+   So ::after — which has no refraction ring to draw without a pane — becomes
+   the pane itself, held at opacity 0 and faded in by scroll below. Doing it on
+   a pseudo rather than on .skinHeader means the only animated property is
+   opacity: animating `backdrop-filter` from `none` was measured NOT to take in
+   this Chrome (the fill and the rim arrived, the blur never did, and the tag
+   pills stayed razor sharp under the bar), and opacity cannot fail that way.
+   Without scroll timelines it simply stays invisible and the scrim is the whole
+   story — which is the fallback this is built on top of. */
+.skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader)::after {
+  content: "";
+  display: block;
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  /* 02 draws this pseudo as a masked ring; here it is a solid pane. */
+  padding: 0;
+  -webkit-mask: none;
+  mask: none;
+  /* flush on mobile, so square — the capsule radius is added on desktop below */
+  border-radius: 0;
+  background: var(--la-fill-chrome);
+  -webkit-backdrop-filter: var(--la-material);
+  backdrop-filter: var(--la-material);
+  box-shadow: var(--la-edge), var(--la-shadow-lg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The bar only floats on desktop, so only there does the pane get the capsule. */
+.layout-desktop
+  .skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader)::after {
+  border-radius: var(--la-header-radius);
+}
+
+@supports (animation-timeline: scroll()) {
+  .skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader)::after {
+    animation: la-header-pane-in linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 var(--la-header-materialise-at);
+  }
+
+  .skinHeader.skinHeader-withBackground.semiTransparent:not(.osdHeader)::before {
+    animation: la-header-scrim-out linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 var(--la-header-materialise-at);
+  }
+}
+
+/* `both` is what holds the end states outside the range: nothing before the
+   scroll starts, full pane after it. */
+@keyframes la-header-pane-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Out early. Two dark layers stacked read as a smudge, and the scrim reaches
+   past the pane's edges, which looks wrong the moment the pane has edges. */
+@keyframes la-header-scrim-out {
+  from {
+    opacity: 1;
+  }
+
+  60% {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* The scrim does most of the work; this catches the rest on a frame that is
+   bright right where an icon happens to sit. */
 .skinHeader-withBackground.semiTransparent:not(.osdHeader) .headerButton,
 .skinHeader-withBackground.semiTransparent:not(.osdHeader) .pageTitle {
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  text-shadow: var(--la-header-icon-shadow);
 }
 
+/* -100% clears the box but not --la-shadow-lg, which reaches 84px below it and
+   would leave a dark smear across the top of the page. */
 .headroom--unpinned:not(.osdHeader) {
-  transform: translateY(calc(-100% - 1em));
+  transform: translateY(calc(-100% - var(--la-header-hide-clear)));
 }
 
 /* --- Header buttons ------------------------------------------------------- */
@@ -816,6 +1127,39 @@ a:hover,
   border: none;
 }
 
+/* On desktop jellyfin overlays the strip on the icon row: it anchors the
+   strip's bottom edge to the header's bottom edge with a hard-coded
+   margin-top: -3.591em, tuned for its own full-height underline tabs. Against a
+   34px capsule that left 19.1px of air above it and 6.8px below — measured, and
+   plainly bottom-heavy on screen. Out of the flow it centres in whatever height
+   the bar has, and the bar's height stops depending on it.
+
+   Mobile is deliberately excluded. There jellyfin drops the negative margin and
+   the strip is a genuine second row (measured: header 99.9px, strip at y=62.3),
+   which is the only thing that fits — 430px will not hold six icons, a wordmark
+   and a centred capsule on one line, and forcing it made the capsule land on
+   top of the logo and the shuffle button.
+
+   top/bottom: 0 plus jellyfin's own `align-self: center` is what does the
+   centring: box alignment applies to absolutely positioned boxes, so `center`
+   sizes the strip to its content and centres it in the inset area instead of
+   stretching. If jellyfin ever drops that, the strip stretches and the flex
+   centring here catches the capsule anyway.
+   .hide still wins over the display: jellyfin declares that one !important. */
+.layout-desktop .skinHeader .headerTabs.sectionTabs {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  /* the strip now spans the whole bar, so only the capsule may take clicks */
+  pointer-events: none;
+}
+
 .sectionTabs .emby-tabs {
   display: inline-flex;
   margin: 0.15em 0.6em 0.55em;
@@ -824,8 +1168,16 @@ a:hover,
   background: var(--la-fill-sunken);
   -webkit-backdrop-filter: var(--la-material-thin);
   backdrop-filter: var(--la-material-thin);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.34), inset 0 0 0 1px var(--la-rim);
+  box-shadow: var(--la-edge-sunken);
   overflow: hidden;
+  /* 7px of refraction ring on a 34px capsule is 40% of it from each side */
+  --la-refract-width: var(--la-tabs-refract-w);
+}
+
+/* Centred by the flex parent above, so the strip's own offsets go. */
+.layout-desktop .skinHeader .headerTabs .emby-tabs {
+  margin: 0;
+  pointer-events: auto;
 }
 
 .sectionTabs .emby-tab-button {
@@ -852,10 +1204,13 @@ a:hover,
   color: var(--la-text);
 }
 
-.sectionTabs .emby-tab-button-active {
-  background-color: var(--la-accent);
-  box-shadow: var(--la-shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  color: var(--la-accent-text);
+/* The selected segment is glass, not a solid accent pill — same reasoning as
+   .navMenuOption-selected, and --la-tab-active-bg switches it back. */
+.sectionTabs .emby-tab-button-active,
+.sectionTabs .emby-tab-button-active:hover {
+  background-color: var(--la-tab-active-bg);
+  box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
+  color: var(--la-tab-active-text);
   font-weight: 600;
 }
 
@@ -864,19 +1219,30 @@ a:hover,
   display: none !important;
 }
 
-/* --- Drawer -------------------------------------------------------------- */
+/* --- Drawer --------------------------------------------------------------
+   A local `--la-blur: var(--la-blur-thick)` used to stand here and did nothing.
+   --la-material is declared on :root, so its var() references are substituted
+   *there*; what inherits down is the finished string blur(22px) saturate(…),
+   and overriding an ingredient afterwards has nothing left to feed. Measured on
+   the open drawer: --la-blur computed to 44px while backdrop-filter stayed at
+   blur(22px). The thick material has to be named directly.
+   Honest note on the payoff: side by side at fill 0.66 the difference is small
+   — a little less of the artwork behind bleeding through. It is the documented
+   intent, not a dramatic change. --la-fill-chrome above is *not* affected by
+   any of this; 02 consumes that one directly, so the override there works. */
 .mainDrawer,
 .drawer-open {
-  --la-blur: var(--la-blur-thick);
   --la-fill-chrome: rgba(14, 16, 22, 0.66);
+  -webkit-backdrop-filter: var(--la-material-thick);
+  backdrop-filter: var(--la-material-thick);
   border-right: none;
   box-shadow: var(--la-edge), var(--la-shadow-lg);
 }
 
 .layout-desktop .mainDrawer {
-  margin: 0.55em;
+  margin: var(--la-chrome-inset);
   border-radius: var(--la-r-xl);
-  height: calc(100% - 1.1em);
+  height: calc(100% - 2 * var(--la-chrome-inset));
   overflow: hidden;
 }
 
@@ -888,7 +1254,7 @@ a:hover,
 
    !important because the transform jellyfin sets is an inline style. */
 .layout-desktop .mainDrawer:not(.drawer-open) {
-  transform: translateX(-0.55em) !important;
+  transform: translateX(calc(-1 * var(--la-chrome-inset))) !important;
 }
 
 .mainDrawer-scrollContainer {
@@ -959,7 +1325,7 @@ a:hover,
   background-color: var(--la-fill-sunken);
   -webkit-backdrop-filter: var(--la-material-thin);
   backdrop-filter: var(--la-material-thin);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 0 0 1px var(--la-rim);
+  box-shadow: var(--la-edge-sunken);
   border: none;
   padding-inline: 1.1em;
   color: var(--la-text);
@@ -1363,13 +1729,39 @@ a:hover,
    On desktop the hero artwork already carries the item, so the poster is off
    by default — the two of them competing for the same band is what made the
    first attempt look cluttered. --la-detail-poster brings it back. */
-.layout-desktop .detailImageContainer .card {
+/* TV is listed with desktop, not left out of it: it has the same full-bleed
+   hero and the same reason to keep the poster off by default. Without the
+   selector the token never reached it and jellyfin's raw poster rendered at
+   480x720 over the hero (measured at 1920x1080). */
+.layout-desktop .detailImageContainer .card,
+.layout-tv .detailImageContainer .card {
   display: var(--la-detail-poster);
   margin: auto auto 0;
   width: 22vh !important;
   float: none;
   position: relative !important;
   inset: auto;
+}
+
+/* Mobile has a second .detailImageContainer — the one in .detailRibbon carries
+   .hide-mobile, and jellyfin renders a live one inside .detailPagePrimaryContent
+   instead, which is why a single querySelector kept reporting display:none while
+   a poster was plainly on screen. It overlaps the clear logo now that the logo
+   actually renders here: measured at 430x932, poster 26.4,383.6 125.7x188.6
+   against logo 47.3,286.3 335.4x139.8, so the poster's top-left corner sat on
+   the logo's lower-left.
+
+   Only where the logo really renders, though. Unlike desktop, mobile keeps its
+   poster otherwise: it is jellyfin's own mobile layout, it is the only image a
+   Person page has at all, and the 6 of 275 items without a logo still want
+   something next to their chips. Same .detailLogo:not(.hide) test the text
+   title uses further down, so both fall back on one signal. Without :has the
+   poster simply stays — jellyfin's default, and no worse than before. */
+@supports selector(:has(*)) {
+  .layout-mobile .itemDetailPage:has(.detailLogo:not(.hide))
+    .detailImageContainer .card {
+    display: var(--la-detail-poster);
+  }
 }
 
 .detailImageContainer .card {
@@ -1409,9 +1801,38 @@ a:hover,
   );
 }
 
+/* TV had no anchor at all — .detailLogo is position: absolute with no `top`,
+   so it fell back to its static position and floated wherever the flow left
+   it. Same construction as desktop (TV does get --la-hero-overlap, the
+   .detailPageWrapperContainer rule at the top of this file covers both), only
+   against the TV hero's own height. */
+.layout-tv .detailLogo {
+  top: calc(
+    var(--la-hero-height-tv) - var(--la-hero-overlap) - var(--la-detail-logo-h) - 0.4em
+  );
+}
+
+/* Same anchor as desktop, against the mobile hero's own height. The 46vh used
+   to be written out here as a literal, one file away from the rule that sets
+   it — now both read --la-hero-height-mobile.
+
+   display has to be repeated here. The bare `.detailLogo` rule above is one
+   class (0,1,0) and jellyfin hides the logo on this layout through a
+   two-class selector, so the token never reached mobile: measured on the live
+   client, .detailLogo computed to display:none with its image already loaded
+   and --la-detail-logo resolving to block. Same trap as the material groups —
+   a specialisation of a member needs at least as many classes as the rule it
+   has to beat. */
 .layout-mobile .detailLogo {
+  display: var(--la-detail-logo);
   width: 78vw;
-  top: calc(46vh - var(--la-hero-overlap) - var(--la-detail-logo-h) - 0.2em);
+  /* No --la-hero-overlap term here, unlike desktop. The overlap is applied by
+     the .detailPageWrapperContainer rule at the top of this file, and that rule
+     is desktop/TV only — on mobile the info block starts exactly at the bottom
+     edge of the hero. Subtracting an overlap that is never applied is what put
+     the logo 172.5px above where it belonged (measured at 430x932: logo bottom
+     295.6, hero bottom 468.1). */
+  top: calc(var(--la-hero-height-mobile) - var(--la-detail-logo-h) - 0.2em);
 }
 
 /* The text title steps aside only where a logo actually rendered. Jellyfin puts
@@ -1729,10 +2150,22 @@ a:hover,
 
    :has has no fallback on old TV webviews, so this is an override on top of the
    unconditional rule rather than a rewrite of it — without :has the theme keeps
-   its previous behaviour. Mobile and TV use a different mechanism (#itemBackdrop
-   carries the image itself) and are NOT covered here. */
+   its previous behaviour.
+
+   The layout scoping on the token block is not cosmetic. Measured on the live
+   client at 430x932: mobile never gets a .backdropImage at all — jellyfin only
+   builds one above 1000px of viewport width — so an unscoped
+   :root:not(:has(.backdropImage)) reported "no artwork" on *every* mobile item,
+   including ones whose hero was fully painted. The visible damage was the clear
+   logo: --la-detail-logo resolved to none and --la-detail-title to block on a
+   page where .detailLogo had its image loaded and ready. TV is listed alongside
+   desktop because it works the desktop way — #itemBackdrop stays an empty
+   spacer there and the picture is .backdropImage (measured at 1920x1080, both
+   with backdrops on and off). Mobile is the odd one out — see the note at the
+   bottom of this file for why it gets no collapse rule of its own. */
 @supports selector(:has(*)) {
-  :root:not(:has(.backdropImage)) {
+  :root.layout-desktop:not(:has(.backdropImage)),
+  :root.layout-tv:not(:has(.backdropImage)) {
     --la-hero-overlap: 0vh;
     /* The logo is positioned off the hero, and without artwork there is no
        hero to position against — so hand the page back to the text title. */
@@ -1740,14 +2173,48 @@ a:hover,
     --la-detail-title: block;
   }
 
-  .layout-desktop:not(:has(.backdropImage)) .itemBackdrop {
+  /* TV was getting the token half of this and not the geometry half, so the
+     hole was still there: measured at 1920x1080 with backdrops off,
+     #itemBackdrop rendered 1920x454 — 42vh of nothing — with no .backdropImage
+     anywhere on the page. Same signal, same two rules. */
+  .layout-desktop:not(:has(.backdropImage)) .itemBackdrop,
+  .layout-tv:not(:has(.backdropImage)) .itemBackdrop {
     height: 0;
   }
 
-  .layout-desktop:not(:has(.backdropImage)) .detailPageWrapperContainer {
+  .layout-desktop:not(:has(.backdropImage)) .detailPageWrapperContainer,
+  .layout-tv:not(:has(.backdropImage)) .detailPageWrapperContainer {
     padding-top: calc(var(--la-header-h) + 2em);
   }
 }
+
+/* --- Why mobile has no hero-collapse rule --------------------------------
+   Measured, not assumed. On mobile the picture lives on #itemBackdrop itself,
+   so .backdropImage is the wrong test — but the right one turns out to be a
+   bad trade, and this is the reasoning so it does not get "fixed" again:
+
+   1. The hole is far rarer here than on desktop. Desktop reserved 72vh on
+      every item because jellyfin ships backdrops off; mobile ignores that
+      setting entirely and falls back Backdrop -> ParentBackdrop -> Primary.
+      Across all 1880 items on the reference server, none lacks every image.
+      What is left is the item types jellyfin refuses a banner — Person, Book.
+      A Person page really does show --la-hero-height-mobile of nothing
+      (measured 428.7px at 430x932).
+
+   2. The only signal CSS can read is jellyfin's own lazy-loader marker,
+      #itemBackdrop[class*="lazy-image-fadein"], and it lands late. Timed with
+      a MutationObserver on a cold load: the element is in the DOM at t=1156ms
+      and the class arrives at t=1733ms — 577ms in which a height tied to it
+      would read "no artwork" on an item that has one. That buys a rare empty
+      hero on Person pages at the price of the info block rendering 428.7px too
+      high, then jumping down, on every film and series.
+
+   The desktop signal does not have this problem: backdrop.js inserts
+   .backdropImage as soon as the item metadata is in, before the picture has
+   loaded, so there the test is already true on first paint.
+
+   If the Person-page hero is worth fixing later, the honest fix is a jellyfin
+   -side one (a class set from item type at render time), not a CSS guess. */
 
 /* ==== 06-controls.css ==== */
 /* ============================================================================
@@ -1858,7 +2325,7 @@ a:hover,
   border: none;
   border-radius: var(--la-r-md);
   background-color: var(--la-fill-sunken);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.32), inset 0 0 0 1px var(--la-rim);
+  box-shadow: var(--la-well), inset 0 0 0 1px var(--la-rim);
   color: var(--la-text);
   font-family: var(--la-font);
   transition:
@@ -1874,18 +2341,29 @@ a:hover,
 .emby-input:hover:not(:focus),
 .emby-textarea:hover:not(:focus),
 .emby-select-withcolor:hover:not(.emby-select[disabled], :focus) {
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.32),
-    inset 0 0 0 1px var(--la-rim-hover);
+  box-shadow: var(--la-well), inset 0 0 0 1px var(--la-rim-hover);
 }
 
+/* 01-base's focus ring carves fields out by name, so they have to bring their
+   own — and until now that was a hand-rolled 2px at 55% white with no dark
+   separator, the weakest focus state in the theme and the only one a D-pad
+   ever lands on in a settings page. Same ring as everything else now, so
+   99-fallbacks can widen every focus state on TV from one place. */
+/* The three select selectors are not padding. The chevron rule further down
+   restates the well on `select.emby-select-withcolor` (0,1,1) and
+   `.emby-select.emby-select-withcolor` (0,2,0) and sits later in the file, so
+   a plain `.emby-select-withcolor:focus` (0,2,0) lost the tie and a focused
+   select rendered its resting state — measured on desktop, no ring at all.
+   Same trap as the material groups in 02: a specialisation needs at least as
+   many classes as the rule it has to beat. */
 .emby-input:focus,
 .emby-textarea:focus,
-.emby-select-withcolor:focus {
+.emby-select-withcolor:focus,
+select.emby-select:focus,
+select.emby-select-withcolor:focus,
+.emby-select.emby-select-withcolor:focus {
   background-color: var(--la-fill-sunken);
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.32),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
-    0 0 0 2px rgba(255, 255, 255, 0.55);
+  box-shadow: var(--la-well), var(--la-focus-ring);
   outline: none;
 }
 
@@ -1899,7 +2377,7 @@ select.emby-select-withcolor,
   border: none !important;
   border-radius: var(--la-r-md);
   color: var(--la-text);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.32), inset 0 0 0 1px var(--la-rim);
+  box-shadow: var(--la-well), inset 0 0 0 1px var(--la-rim);
 }
 
 .emby-select,
@@ -1997,12 +2475,11 @@ fieldset {
 
 .checkboxOutline:not(.multiSelectCheckboxOutline) {
   background-color: var(--la-fill-sunken);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 0 0 1px var(--la-rim);
+  box-shadow: var(--la-well), inset 0 0 0 1px var(--la-rim);
 }
 
 .checkboxContainer:hover .checkboxOutline:not(.multiSelectCheckboxOutline) {
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3),
-    inset 0 0 0 1px var(--la-rim-hover);
+  box-shadow: var(--la-well), inset 0 0 0 1px var(--la-rim-hover);
 }
 
 .emby-checkbox:checked + span + .checkboxOutline:not(.multiSelectCheckboxOutline) {
@@ -2027,9 +2504,18 @@ fieldset {
   color: var(--la-accent-text);
 }
 
+/* Jellyfin's checkbox is a 1x1px <input> parked next to the box you can see, so
+   the generic focus ring in 01-base lands on the 1x1 and draws a dot beside the
+   control instead of around it. Measured: the input's border box really is
+   1x1, and it really does pick up the ring. Selector shape mirrors 01-base's
+   own so it outranks it at (0,5,2) against (0,4,1); the ring moves to the
+   sibling below, where it belongs. */
+input.emby-checkbox:focus-visible:not(.emby-input):not(.emby-textarea):not(.emby-select):not(select) {
+  box-shadow: none;
+}
+
 .emby-checkbox:focus + span + .checkboxOutline {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4),
-    0 0 0 3px var(--la-accent-glow);
+  box-shadow: var(--la-focus-ring);
 }
 
 /* --- Radios ------------------------------------------------------------ */
@@ -2187,8 +2673,19 @@ progress,
 
 /* --- Dialogs ------------------------------------------------------------- */
 .dialog:not(.dialog-fullscreen) {
-  --la-blur: var(--la-blur-thick);
-  --la-fill-chrome: rgba(22, 24, 32, 0.72);
+  --la-fill-chrome: var(--la-fill-dialog);
+  /* A local `--la-blur: var(--la-blur-thick)` stood here and did nothing:
+     --la-material is declared on :root, so its var() references resolve there
+     and what inherits down is the finished blur(22px) saturate(155%)
+     brightness(104%). Measured on the live media-info dialog: --la-blur read
+     44px on the element while backdrop-filter rendered blur(22px). A thicker
+     filter has to be named directly.
+
+     Action sheets are unaffected — they are also .dialog, but the
+     `.dialog.actionSheet:not(.dialog-fullscreen)` rule below is three classes
+     and turns the wrapper's filter off outright. */
+  -webkit-backdrop-filter: var(--la-material-thick);
+  backdrop-filter: var(--la-material-thick);
   min-width: 13em;
   border: none;
   border-radius: var(--la-r-2xl);
@@ -2246,18 +2743,78 @@ progress,
 }
 
 /* --- Action sheets ------------------------------------------------------
-   The iOS sheet: a rounded glass card with hairline-separated rows. */
+   Every menu in the client is this one component: the item context menu
+   (add to collection / download / edit metadata / …), the OSD settings sheet
+   (aspect ratio / playback speed / quality / …) and the audio and subtitle
+   pickers. Measured on the live client, all three render as
+
+     .dialog.actionSheet.actionsheet-not-fullscreen   ← positioning wrapper
+       └ .actionSheetContent                          ← the pane itself
+           └ .actionSheetScroller
+               ├ .actionSheetTitle          (pickers only)
+               └ .actionSheetMenuItem …
+
+   and the wrapper's border box is *exactly* the pane's border box.
+
+   That mattered, because the wrapper carries the bare `.dialog` class and so
+   matched the chrome tier in 02-material as well — the glass was being built
+   twice. Measured before: both boxes on rgba(22,24,32,.7x) with their own
+   blur(22px) saturate(155%), which composites to ~93% opaque, i.e. the flat
+   dark slab the theme was trying not to be. On top of that the wrapper kept
+   jellyfin's own 1.5px radius plus `overflow: hidden`, so it squared off the
+   pane's rounded corners and clipped its drop shadow away.
+
+   So the wrapper is demoted to what it actually is — a box that positions
+   things — and the pane carries the material alone. Three classes, because
+   the `.dialog:not(.dialog-fullscreen)` group in 02-material is already two
+   and would otherwise win on source order. */
+.dialog.actionSheet:not(.dialog-fullscreen) {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-radius: 0;
+  box-shadow: none;
+  /* jellyfin's own scroller handles the overflow; hidden here only ever cut
+     the pane's shadow off. */
+  overflow: visible;
+}
+
+/* The wrapper's sheen (02-material) and refraction ring sit *behind* the pane
+   — the pane is a solid-enough fill at z-index 3 — so all they ever did was
+   paint the squared-off corners. The pane keeps its own ring; the sheen is
+   dropped rather than moved, so that the Reduce Transparency and TV blocks in
+   99-fallbacks stay complete without touching that file. */
+.dialog.actionSheet:not(.dialog-fullscreen)::before,
+.dialog.actionSheet:not(.dialog-fullscreen)::after {
+  content: none;
+}
+
+/* The iOS sheet: a rounded glass card with hairline-separated rows. */
 .actionSheetContent {
-  --la-blur: var(--la-blur-thick);
-  --la-fill-chrome: rgba(22, 24, 32, 0.74);
-  padding: 0.35em !important;
+  /* Layered, not swapped: --la-fill-chrome is the token 99-fallbacks turns
+     opaque for no-backdrop-filter, Reduce Transparency and TV, so overriding
+     it here would quietly opt every menu out of all three. */
+  background-color: var(--la-fill-chrome);
+  background-image: linear-gradient(var(--la-menu-veil), var(--la-menu-veil));
+  /* A local `--la-blur: var(--la-blur-thick)` is a no-op, which is what the
+     rule here used to do: --la-material is declared on :root, so its var()
+     references are resolved *there* and what inherits down is already the
+     finished blur(22px) saturate(155%) brightness(104%). Measured 22px where
+     44px was asked for. A thicker filter has to be named directly. */
+  -webkit-backdrop-filter: var(--la-material-thick);
+  backdrop-filter: var(--la-material-thick);
+  padding: 0.4em !important;
   border: none;
-  border-radius: var(--la-r-xl);
+  /* Concentric: 22px pane − 0.4em padding ≈ the 16px rows inside it. */
+  border-radius: var(--la-r-lg);
   box-shadow: var(--la-edge), var(--la-shadow-lg);
+  overflow: hidden;
+  position: relative;
 }
 
 .actionSheetContent > h1,
 .actionSheetContent > .actionSheetTitle {
+  margin: 0;
   color: var(--la-text-faint);
   font-size: 0.86em;
   font-weight: 600;
@@ -2277,8 +2834,49 @@ progress,
   transition: background-color var(--la-fast) var(--la-ease-out);
 }
 
-.actionSheetMenuItem:hover {
+.actionSheetMenuItem:hover,
+.actionSheetMenuItem:focus-visible {
   background-color: var(--la-fill-hover);
+}
+
+/* A menu row lights up, it does not shrink. Overrides the shared
+   `.emby-button:active { transform: scale(.96) }` from 02-material — same
+   specificity, later file. */
+.actionSheetMenuItem:active {
+  background-color: var(--la-fill-active);
+  transform: none;
+}
+
+/* jellyfin puts its own colour and font-weight 400 on the label, so nothing
+   the row says about itself — the destructive red, the heavier weight on the
+   selected track — ever reaches the text. Hand both back to the row. */
+.actionSheetMenuItem .listItemBodyText {
+  color: inherit;
+  font-weight: inherit;
+}
+
+/* The value on the right of the OSD settings rows — "Auto", "1x",
+   "Auto 15 Mbps". jellyfin leaves it at full text colour, where it competes
+   with the label it belongs to. */
+.actionSheetMenuItem .listItemAside,
+.actionSheetMenuItem .actionSheetItemAsideText {
+  color: var(--la-text-dim);
+  font-weight: 450;
+}
+
+/* Destructive actions read red, the way they do in an iOS action sheet.
+   jellyfin tags the row itself, so icon and label both inherit — but only
+   thanks to the `color: inherit` above. On its own this rule reddened the
+   icon and left the label white (measured). */
+.actionSheetMenuItem[data-id="delete"] {
+  color: var(--la-danger);
+}
+
+/* The pickers put a check on every row and hide the inactive ones with an
+   inline visibility, so tinting all of them is safe and gives :has-less
+   webviews the accent tick without any fallback query. */
+.actionSheetMenuItem .listItemIcon.check {
+  color: var(--la-accent);
 }
 
 .actionSheetMenuItem:has(.listItemIcon.check:not([style*="hidden"])) {
@@ -2286,14 +2884,20 @@ progress,
   font-weight: 600;
 }
 
-.actionSheetMenuItem:has(.listItemIcon.check:not([style*="hidden"])) .listItemIcon.check {
-  color: var(--la-accent);
+/* Without this the hover fill (0.13) is brighter than the selected fill
+   (0.07) and pointing at a row looks like selecting it. */
+.actionSheetMenuItem:has(.listItemIcon.check:not([style*="hidden"])):hover {
+  background-color: var(--la-fill-active);
 }
 
+/* jellyfin paints the divider as a filled 1px block; the theme draws it as a
+   hairline border. Both at once measured 2.03px — a double line. */
 .actionsheetDivider {
+  height: 0;
+  background: transparent;
   border: none;
   border-top: 1px solid var(--la-rim);
-  margin: 0.3em 0.6em;
+  margin: 0.4em 0.7em;
 }
 
 /* --- Toast / up-next --------------------------------------------------- */
@@ -2346,7 +2950,11 @@ progress,
   box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
 }
 
-.listItemBody > .listItemBodyText:not(.secondary) {
+/* Action-sheet rows are excluded: their label sits in a .listItemBody too, and
+   a colour and weight of its own there overrode everything the menu row was
+   trying to say — the red on a destructive action, the heavier weight on the
+   selected track. Left out, the label simply inherits from the row. */
+.listItemBody > .listItemBodyText:not(.secondary):not(.actionSheetItemText) {
   color: var(--la-text);
   font-weight: 550;
 }
@@ -2751,10 +3359,30 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
   padding-top: 0.4em;
 }
 
-/* --- MUI ---------------------------------------------------------------- */
-.MuiPaper-root,
-.MuiPaper-elevation1,
-.MuiPaper-elevation2 {
+/* --- MUI ----------------------------------------------------------------
+   In 10.11 the admin area is a MUI shell: `.skinHeader` measures 0x0 there and
+   the real top bar is `.MuiAppBar-root`, the real drawer `.MuiDrawer-paper`.
+   02-material puts both in the chrome tier, on purpose — they are the chrome.
+
+   This group used to be a bare `.MuiPaper-root` with `!important`, and both of
+   them are MuiPaper-root too, so it swallowed them: measured on the live
+   dashboard the AppBar and the Drawer were rendering fill rgba(255,255,255,.07),
+   blur(12px) saturate(1.55), --la-edge-soft and a 22px radius — the control
+   tier, verbatim from here, with a pill radius on a full-width fixed bar and a
+   full-height docked drawer. That reads as "the dashboard is unthemed"; it is
+   in fact themed as the wrong tier. Emotion, MUI's CSS-in-JS, is not involved:
+   it injects into <head> and the theme is injected at the end of <body>, so at
+   equal specificity the theme already wins — measured, not assumed.
+
+   So the group is narrowed to what it is actually for — content surfaces:
+   cards, panels, tables. The three chrome-tier papers are excluded and fall
+   back to the tier 02-material assigned them. The elevation1/elevation2
+   selectors are gone with it: MUI never sets those without MuiPaper-root, so
+   they only ever re-captured what the :not() chain had just let through.
+
+   Chained single-argument :not() rather than :not(a, b) — the list form is
+   Selectors 4 and not on the old TV webviews this theme still has to render on. */
+.MuiPaper-root:not(.MuiAppBar-root):not(.MuiDrawer-paper):not(.MuiPopover-paper) {
   background-color: var(--la-fill) !important;
   background-image: none !important;
   -webkit-backdrop-filter: var(--la-material-thin);
@@ -2765,9 +3393,57 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
   color: var(--la-text) !important;
 }
 
-.MuiList-root.MuiMenu-list {
-  --la-fill-chrome: rgba(22, 24, 32, 0.74);
+/* --- MUI menus -----------------------------------------------------------
+   Same wrapper-and-pane mistake as the action sheets, nailed down with
+   !important. A MUI menu is two boxes:
+
+     .MuiPopover-paper.MuiPaper-root   ← positions, rounds, clips and scrolls
+       └ .MuiList-root.MuiMenu-list    ← a padded <ul>, nothing more
+
+   Measured on the live dashboard (10.11.11, user menu at 1600x1400): both
+   border boxes came out at exactly 1360 / 44 / 215.5 x 248.8 — identical — and
+   *both* were building glass. The paper took fill rgba(255,255,255,.07) and
+   blur(12px) from the .MuiPaper-root group above; the list took
+   rgba(22,24,32,.74) and blur(22px) from the chrome tier in 02-material. Two
+   fills composite to 75.8% coverage where 74% was asked for, the two rims are
+   drawn on the same 1px edge, and the two blurs stack on one surface.
+
+   What actually made it read as a flat slab: the paper is MUI's scroll
+   container (`overflow: hidden auto`), so it clipped the list's --la-shadow-md
+   away, while the paper's own box-shadow had been replaced with an inset-only
+   --la-edge-soft. The menu had no drop shadow at all.
+
+   The paper keeps the material here, not the list, because the paper is the
+   element that rounds, clips and scrolls — a long menu scrolls its list *past*
+   those corners. An element's own box-shadow is not clipped by its own
+   overflow, so the drop shadow survives.
+
+   Two classes, so this outranks both Emotion's single generated class and the
+   content-surface group above. No !important needed anywhere: nothing else
+   claims these properties on this element once the group excludes it. */
+.MuiPopover-paper.MuiPaper-root {
+  /* Layered, not swapped, exactly like .actionSheetContent: --la-fill-chrome is
+     the token 99-fallbacks turns opaque for no-backdrop-filter, Reduce
+     Transparency and TV, so replacing it would opt every menu out of all
+     three. --la-menu-veil is the same extra body the action sheets carry. */
+  background-color: var(--la-fill-chrome);
+  background-image: linear-gradient(var(--la-menu-veil), var(--la-menu-veil));
+  -webkit-backdrop-filter: var(--la-material);
+  backdrop-filter: var(--la-material);
+  border: none;
   border-radius: var(--la-r-lg);
+  box-shadow: var(--la-edge), var(--la-shadow-md);
+  color: var(--la-text);
+}
+
+/* Demoted to the padded <ul> it is. `.MuiList-root.MuiMenu-list` is a tier-1
+   member of the chrome group in 02-material — two classes, same as this — so
+   this wins on source order alone and needs no !important. */
+.MuiList-root.MuiMenu-list {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
   padding: 0.3em;
 }
 
@@ -2937,6 +3613,7 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     --la-fill-hover: rgba(255, 255, 255, 0.16);
     --la-fill-thick: #1a1c24;
     --la-fill-chrome: #14161c;
+    --la-fill-dialog: #1a1c24;
   }
 }
 
@@ -2952,6 +3629,7 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     --la-fill-hover: rgba(255, 255, 255, 0.18);
     --la-fill-thick: #1a1c24;
     --la-fill-chrome: #14161c;
+    --la-fill-dialog: #1a1c24;
     --la-ground: #0b0c10;
   }
 
@@ -2976,6 +3654,11 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     --la-text-faint: rgba(255, 255, 255, 0.66);
     --la-fill: rgba(255, 255, 255, 0.14);
     --la-fill-chrome: rgba(10, 11, 15, 0.9);
+    --la-fill-dialog: rgba(20, 22, 30, 0.95);
+    /* Whoever asks for more contrast asks for it here first. */
+    --la-focus: #fff;
+    --la-focus-band: 3px;
+    --la-focus-halo: 2px;
   }
 }
 
@@ -3065,39 +3748,198 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
   --la-refract-blur: 0px;
   --la-fill-thick: #191b23;
   --la-fill-chrome: #14161c;
+  --la-fill-dialog: #1a1c24;
   --la-mesh-opacity: 0.5;
   --la-lift: 0px;
+
+  /* The whole TV focus story is these five lines; the rules below only decide
+     which element they land on. What shipped before was 01-base's ring, and
+     sampling a focused card put exactly one white pixel on a 1920-wide screen
+     — roughly 0.7 arcmin from three metres, under what the eye resolves, for
+     the one control scheme that has nothing else to go on. Nine pixels here,
+     five of them solid white, dark on both sides so it reads against a black
+     page *and* against someone's bright poster. */
+  --la-focus: #fff;
+  --la-focus-sep: 2px;
+  --la-focus-band: 5px;
+  --la-focus-halo: 2px;
+  --la-focus-fill: var(--la-fill-active);
 }
 
 .layout-tv .backdropImage {
   filter: saturate(120%) brightness(0.6);
 }
 
+/* --- The D-pad ring -----------------------------------------------------
+   All values are tokens (see 00-tokens.css); what follows is only the wiring,
+   because "which element does jellyfin actually put focus on" is not something
+   a token can answer. Everything here was measured on a real .layout-tv
+   client — Android TV user agent, 1920x1080, Emulation.setFocusEmulationEnabled
+   so :focus resolves at all in headless.
+
+   Written twice on purpose:
+
+   1. The static pair below is the only one a webview without :focus-visible
+      (anything before Chrome 86 — plenty of Fire TV and webOS boxes) can parse.
+      It must stay its own rule: one unparsable selector invalidates the whole
+      selector list, so grouping it with the modern twin would delete both.
+   2. The modern twin mirrors 01-base.css's own selector shape. That rule scores
+      (0,4,1) — the four :not()s count — and beats a plain
+      `.layout-tv .show-focus:focus` (0,3,0), which is why the loud TV ring
+      never rendered: a focused card measured the thin desktop ring, 1px of
+      white, and `transform: matrix(1,0,0,1,0,0)`. :root + .layout-tv takes the
+      mirror to (0,7,1).
+
+   Cards are excluded from both and handled below — the button jellyfin makes
+   focusable wraps the artwork *and* its caption, and there is no room outside
+   it for a ring. */
+.layout-tv .show-focus:focus:not(.card),
+.layout-tv .show-animation:focus:not(.card),
+.layout-tv .emby-select-focusscale:focus {
+  outline: none;
+  box-shadow: var(--la-focus-ring), var(--la-shadow-lift);
+}
+
+:root.layout-tv :focus-visible:not(.card):not(.emby-input):not(.emby-textarea):not(.emby-select):not(select):not(.emby-checkbox) {
+  outline: none;
+  box-shadow: var(--la-focus-ring), var(--la-shadow-lift);
+}
+
+/* Kept separate from the ring so it stays at (0,3,0): cards run their own
+   transform off a scroll timeline in 04-cards.css and should keep it. */
 .layout-tv .show-focus:focus,
 .layout-tv .show-animation:focus,
 .layout-tv .emby-select-focusscale:focus {
+  transform: scale(var(--la-focus-scale));
+}
+
+/* Fields are carved out of 01-base's focus rule, so they need the ring by name.
+   Without this they kept 06-controls' desktop treatment: 2px at 55% white, no
+   dark separator, no scale — the faintest focus state on the whole TV client. */
+.layout-tv .emby-input:focus,
+.layout-tv .emby-textarea:focus,
+.layout-tv .emby-select-withcolor:focus,
+.layout-tv select:focus {
   outline: none;
-  transform: scale(1.06);
-  box-shadow:
-    inset 0 0 0 2px #fff,
-    0 0 0 3px rgba(255, 255, 255, 0.7),
-    var(--la-shadow-lift);
+  box-shadow: var(--la-well), var(--la-focus-ring);
+}
+
+/* jellyfin's shipped dark theme fills every focused button with its own accent
+   — measured in the live sheet: `.emby-button.show-focus:focus { background:
+   rgb(0,164,220) }` and `.paper-icon-button-light.show-focus:focus { color:
+   rgb(0,164,220) }`. That cyan is the one colour this theme does not use. Both
+   are (0,3,0); matching that and arriving later wins the tie. */
+.layout-tv .show-focus:focus:not(.card) {
+  background-color: var(--la-focus-fill);
+}
+
+.layout-tv .paper-icon-button-light:focus {
+  color: var(--la-text);
+}
+
+/* …except where the theme already owns the fill. Two classes, so this beats the
+   rule above rather than losing to it (see the material-group note in
+   CLAUDE.md). */
+.layout-tv .btnPlay.detailButton:focus,
+.layout-tv .emby-button.button-submit:focus {
+  background: var(--la-accent);
+  color: var(--la-accent-text);
+}
+
+/* Cards. jellyfin builds the ring into the card itself on TV:
+   `.card.show-focus:not(.show-animation) .cardBox:not(.visualCardBox)
+   .cardScalable { border: 0.5em solid transparent; border-radius: 0.7em }`,
+   so the ring lives *inside* .cardScalable's own box and a row's
+   overflow: hidden can never cut it. 04-cards.css takes that room back with
+   `border: none !important`, which left the ring nowhere to go: measured slack
+   to the left of the first card is 63.4px on the home rows but 0.0px on the
+   cast and "similar" rows, where the scroller's padding-left is 0.
+
+   The old inset ring on .cardScalable never showed at all: an inset box-shadow
+   paints under the element's *children*, and .cardImageContainer's artwork
+   covers the whole padding box. Sampled at the very edge pixel: 144,144,144 —
+   artwork, no white anywhere.
+
+   !important because 04-cards.css clears the border the same way. */
+.layout-tv .card.show-focus .cardBox.visualCardBox,
+.layout-tv .card.show-focus .cardBox:not(.visualCardBox) .cardScalable {
+  border: var(--la-focus-clear) solid transparent !important;
+}
+
+/* Jellyfin's shipped theme colours that border with its own accent, and does it
+   with !important:
+     `.card:focus .cardBox.visualCardBox,
+      .card:focus .cardBox:not(.visualCardBox) .cardScalable
+        { border-color: rgb(0,164,220) !important }`  — read out of the live
+   sheet. Between two !important declarations specificity still decides, so
+   matching the shorter selector was not enough: the ring measured cyan even
+   with !important on it. Jellyfin's shape, prefixed, is (0,5,0) against its
+   (0,4,0). */
+.layout-tv .card:focus .cardBox.visualCardBox,
+.layout-tv .card:focus .cardBox:not(.visualCardBox) .cardScalable {
+  border-color: var(--la-focus) !important;
 }
 
 .layout-tv .card:focus .cardScalable {
-  box-shadow:
-    inset 0 0 0 2px #fff,
-    var(--la-shadow-lift);
+  /* The dark separator, drawn at the inner edge of that border by an outline
+     pulled inward — the one way to get a second colour into a border. */
+  outline: var(--la-focus-sep) solid var(--la-focus-shade);
+  outline-offset: calc(-1 * var(--la-focus-clear));
+  box-shadow: var(--la-shadow-lift);
 }
 
-/* Rendering the decorative layers on TV costs frames for nothing. */
+/* …and with the ring on the artwork, the card button must not draw a second
+   one around artwork *and* caption. 01-base's rule is (0,4,1); mirroring its
+   shape takes this to (0,6,1). */
+:root.layout-tv .card:focus-visible:not(.emby-input):not(.emby-select):not(select) {
+  box-shadow: none;
+}
+
+/* The checkbox jellyfin focuses is a 1x1px hidden <input>; the box you can see
+   is its sibling .checkboxOutline. A ring on the input is a dot in the corner,
+   so the input keeps none and the outline gets the real thing. Mirrored
+   selector shape again, to outrank 01-base (0,6,1 vs 0,4,1). */
+:root.layout-tv .emby-checkbox:focus-visible:not(.emby-input):not(.emby-select):not(select) {
+  box-shadow: none;
+}
+
+.layout-tv .emby-checkbox:focus + span + .checkboxOutline {
+  box-shadow: var(--la-focus-ring);
+}
+
+/* The tab strip is the one place the ring cannot fit. .tabs-viewmenubar is
+   overflow: hidden with 4.4px of slack, it sits inside .skinHeader which is
+   overflow: hidden as well, and jellyfin scales a focused tab by 1.3
+   !important — measured slack with that scale applied: -15.7px left, -2.5px
+   top and bottom, i.e. the tab overflows its own strip before a ring is even
+   drawn. Padding the strip does not help; it only pushes the box past the
+   header instead (measured: strip top went to -11px, still clipped).
+
+   So the tab gets the one focus signal that cannot be clipped — a fill — and
+   the scale comes down to the theme's own. Both need !important because
+   jellyfin's rules do: `.emby-tab-button.show-focus:focus { background: 0px
+   center !important; transform: scale(1.3) !important }` (read out of the live
+   sheet; that background shorthand also resets background-color, which is why
+   a plain fill silently did nothing). */
+.layout-tv .emby-tab-button.show-focus:focus {
+  background-color: var(--la-focus) !important;
+  color: var(--la-accent-text);
+  transform: scale(var(--la-focus-scale)) !important;
+}
+
+/* Rendering the decorative layers on TV costs frames for nothing.
+
+   .btnPlay.detailButton::after used to be in this list and did not belong:
+   it is not decoration, it is `content: attr(title)` in 05-detail.css and the
+   only label the play button has. Hiding it left the primary action as a bare
+   icon rattling around inside 1.5em of pill padding — on the one layout where
+   that button is what the remote lands on first. */
 .layout-tv .skinHeader-blurred::before,
 .layout-tv .skinHeader-blurred::after,
 .layout-tv .mainDrawer::before,
 .layout-tv .mainDrawer::after,
 .layout-tv .dialog::before,
 .layout-tv .dialog::after,
-.layout-tv .actionSheetContent::after,
-.layout-tv .btnPlay.detailButton::after {
+.layout-tv .actionSheetContent::after {
   display: none;
 }

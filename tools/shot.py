@@ -98,6 +98,10 @@ def main():
         call('Emulation.setDeviceMetricsOverride',
              {'width': VIEWPORT[0], 'height': VIEWPORT[1],
               'deviceScaleFactor': 1, 'mobile': MOBILE})
+        # Without this a headless page reports document.hasFocus() === false:
+        # el.focus() still moves activeElement, but not one :focus rule applies,
+        # so every focus-state measurement silently reads the resting style.
+        call('Emulation.setFocusEmulationEnabled', {'enabled': True})
         if MOTION:
             call('Emulation.setEmulatedMedia',
                  {'features': [{'name': 'prefers-reduced-motion',

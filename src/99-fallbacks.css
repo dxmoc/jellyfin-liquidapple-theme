@@ -22,6 +22,7 @@
     --la-fill-hover: rgba(255, 255, 255, 0.16);
     --la-fill-thick: #1a1c24;
     --la-fill-chrome: #14161c;
+    --la-fill-dialog: #1a1c24;
   }
 }
 
@@ -37,6 +38,7 @@
     --la-fill-hover: rgba(255, 255, 255, 0.18);
     --la-fill-thick: #1a1c24;
     --la-fill-chrome: #14161c;
+    --la-fill-dialog: #1a1c24;
     --la-ground: #0b0c10;
   }
 
@@ -61,6 +63,11 @@
     --la-text-faint: rgba(255, 255, 255, 0.66);
     --la-fill: rgba(255, 255, 255, 0.14);
     --la-fill-chrome: rgba(10, 11, 15, 0.9);
+    --la-fill-dialog: rgba(20, 22, 30, 0.95);
+    /* Whoever asks for more contrast asks for it here first. */
+    --la-focus: #fff;
+    --la-focus-band: 3px;
+    --la-focus-halo: 2px;
   }
 }
 
@@ -150,39 +157,198 @@
   --la-refract-blur: 0px;
   --la-fill-thick: #191b23;
   --la-fill-chrome: #14161c;
+  --la-fill-dialog: #1a1c24;
   --la-mesh-opacity: 0.5;
   --la-lift: 0px;
+
+  /* The whole TV focus story is these five lines; the rules below only decide
+     which element they land on. What shipped before was 01-base's ring, and
+     sampling a focused card put exactly one white pixel on a 1920-wide screen
+     — roughly 0.7 arcmin from three metres, under what the eye resolves, for
+     the one control scheme that has nothing else to go on. Nine pixels here,
+     five of them solid white, dark on both sides so it reads against a black
+     page *and* against someone's bright poster. */
+  --la-focus: #fff;
+  --la-focus-sep: 2px;
+  --la-focus-band: 5px;
+  --la-focus-halo: 2px;
+  --la-focus-fill: var(--la-fill-active);
 }
 
 .layout-tv .backdropImage {
   filter: saturate(120%) brightness(0.6);
 }
 
+/* --- The D-pad ring -----------------------------------------------------
+   All values are tokens (see 00-tokens.css); what follows is only the wiring,
+   because "which element does jellyfin actually put focus on" is not something
+   a token can answer. Everything here was measured on a real .layout-tv
+   client — Android TV user agent, 1920x1080, Emulation.setFocusEmulationEnabled
+   so :focus resolves at all in headless.
+
+   Written twice on purpose:
+
+   1. The static pair below is the only one a webview without :focus-visible
+      (anything before Chrome 86 — plenty of Fire TV and webOS boxes) can parse.
+      It must stay its own rule: one unparsable selector invalidates the whole
+      selector list, so grouping it with the modern twin would delete both.
+   2. The modern twin mirrors 01-base.css's own selector shape. That rule scores
+      (0,4,1) — the four :not()s count — and beats a plain
+      `.layout-tv .show-focus:focus` (0,3,0), which is why the loud TV ring
+      never rendered: a focused card measured the thin desktop ring, 1px of
+      white, and `transform: matrix(1,0,0,1,0,0)`. :root + .layout-tv takes the
+      mirror to (0,7,1).
+
+   Cards are excluded from both and handled below — the button jellyfin makes
+   focusable wraps the artwork *and* its caption, and there is no room outside
+   it for a ring. */
+.layout-tv .show-focus:focus:not(.card),
+.layout-tv .show-animation:focus:not(.card),
+.layout-tv .emby-select-focusscale:focus {
+  outline: none;
+  box-shadow: var(--la-focus-ring), var(--la-shadow-lift);
+}
+
+:root.layout-tv :focus-visible:not(.card):not(.emby-input):not(.emby-textarea):not(.emby-select):not(select):not(.emby-checkbox) {
+  outline: none;
+  box-shadow: var(--la-focus-ring), var(--la-shadow-lift);
+}
+
+/* Kept separate from the ring so it stays at (0,3,0): cards run their own
+   transform off a scroll timeline in 04-cards.css and should keep it. */
 .layout-tv .show-focus:focus,
 .layout-tv .show-animation:focus,
 .layout-tv .emby-select-focusscale:focus {
+  transform: scale(var(--la-focus-scale));
+}
+
+/* Fields are carved out of 01-base's focus rule, so they need the ring by name.
+   Without this they kept 06-controls' desktop treatment: 2px at 55% white, no
+   dark separator, no scale — the faintest focus state on the whole TV client. */
+.layout-tv .emby-input:focus,
+.layout-tv .emby-textarea:focus,
+.layout-tv .emby-select-withcolor:focus,
+.layout-tv select:focus {
   outline: none;
-  transform: scale(1.06);
-  box-shadow:
-    inset 0 0 0 2px #fff,
-    0 0 0 3px rgba(255, 255, 255, 0.7),
-    var(--la-shadow-lift);
+  box-shadow: var(--la-well), var(--la-focus-ring);
+}
+
+/* jellyfin's shipped dark theme fills every focused button with its own accent
+   — measured in the live sheet: `.emby-button.show-focus:focus { background:
+   rgb(0,164,220) }` and `.paper-icon-button-light.show-focus:focus { color:
+   rgb(0,164,220) }`. That cyan is the one colour this theme does not use. Both
+   are (0,3,0); matching that and arriving later wins the tie. */
+.layout-tv .show-focus:focus:not(.card) {
+  background-color: var(--la-focus-fill);
+}
+
+.layout-tv .paper-icon-button-light:focus {
+  color: var(--la-text);
+}
+
+/* …except where the theme already owns the fill. Two classes, so this beats the
+   rule above rather than losing to it (see the material-group note in
+   CLAUDE.md). */
+.layout-tv .btnPlay.detailButton:focus,
+.layout-tv .emby-button.button-submit:focus {
+  background: var(--la-accent);
+  color: var(--la-accent-text);
+}
+
+/* Cards. jellyfin builds the ring into the card itself on TV:
+   `.card.show-focus:not(.show-animation) .cardBox:not(.visualCardBox)
+   .cardScalable { border: 0.5em solid transparent; border-radius: 0.7em }`,
+   so the ring lives *inside* .cardScalable's own box and a row's
+   overflow: hidden can never cut it. 04-cards.css takes that room back with
+   `border: none !important`, which left the ring nowhere to go: measured slack
+   to the left of the first card is 63.4px on the home rows but 0.0px on the
+   cast and "similar" rows, where the scroller's padding-left is 0.
+
+   The old inset ring on .cardScalable never showed at all: an inset box-shadow
+   paints under the element's *children*, and .cardImageContainer's artwork
+   covers the whole padding box. Sampled at the very edge pixel: 144,144,144 —
+   artwork, no white anywhere.
+
+   !important because 04-cards.css clears the border the same way. */
+.layout-tv .card.show-focus .cardBox.visualCardBox,
+.layout-tv .card.show-focus .cardBox:not(.visualCardBox) .cardScalable {
+  border: var(--la-focus-clear) solid transparent !important;
+}
+
+/* Jellyfin's shipped theme colours that border with its own accent, and does it
+   with !important:
+     `.card:focus .cardBox.visualCardBox,
+      .card:focus .cardBox:not(.visualCardBox) .cardScalable
+        { border-color: rgb(0,164,220) !important }`  — read out of the live
+   sheet. Between two !important declarations specificity still decides, so
+   matching the shorter selector was not enough: the ring measured cyan even
+   with !important on it. Jellyfin's shape, prefixed, is (0,5,0) against its
+   (0,4,0). */
+.layout-tv .card:focus .cardBox.visualCardBox,
+.layout-tv .card:focus .cardBox:not(.visualCardBox) .cardScalable {
+  border-color: var(--la-focus) !important;
 }
 
 .layout-tv .card:focus .cardScalable {
-  box-shadow:
-    inset 0 0 0 2px #fff,
-    var(--la-shadow-lift);
+  /* The dark separator, drawn at the inner edge of that border by an outline
+     pulled inward — the one way to get a second colour into a border. */
+  outline: var(--la-focus-sep) solid var(--la-focus-shade);
+  outline-offset: calc(-1 * var(--la-focus-clear));
+  box-shadow: var(--la-shadow-lift);
 }
 
-/* Rendering the decorative layers on TV costs frames for nothing. */
+/* …and with the ring on the artwork, the card button must not draw a second
+   one around artwork *and* caption. 01-base's rule is (0,4,1); mirroring its
+   shape takes this to (0,6,1). */
+:root.layout-tv .card:focus-visible:not(.emby-input):not(.emby-select):not(select) {
+  box-shadow: none;
+}
+
+/* The checkbox jellyfin focuses is a 1x1px hidden <input>; the box you can see
+   is its sibling .checkboxOutline. A ring on the input is a dot in the corner,
+   so the input keeps none and the outline gets the real thing. Mirrored
+   selector shape again, to outrank 01-base (0,6,1 vs 0,4,1). */
+:root.layout-tv .emby-checkbox:focus-visible:not(.emby-input):not(.emby-select):not(select) {
+  box-shadow: none;
+}
+
+.layout-tv .emby-checkbox:focus + span + .checkboxOutline {
+  box-shadow: var(--la-focus-ring);
+}
+
+/* The tab strip is the one place the ring cannot fit. .tabs-viewmenubar is
+   overflow: hidden with 4.4px of slack, it sits inside .skinHeader which is
+   overflow: hidden as well, and jellyfin scales a focused tab by 1.3
+   !important — measured slack with that scale applied: -15.7px left, -2.5px
+   top and bottom, i.e. the tab overflows its own strip before a ring is even
+   drawn. Padding the strip does not help; it only pushes the box past the
+   header instead (measured: strip top went to -11px, still clipped).
+
+   So the tab gets the one focus signal that cannot be clipped — a fill — and
+   the scale comes down to the theme's own. Both need !important because
+   jellyfin's rules do: `.emby-tab-button.show-focus:focus { background: 0px
+   center !important; transform: scale(1.3) !important }` (read out of the live
+   sheet; that background shorthand also resets background-color, which is why
+   a plain fill silently did nothing). */
+.layout-tv .emby-tab-button.show-focus:focus {
+  background-color: var(--la-focus) !important;
+  color: var(--la-accent-text);
+  transform: scale(var(--la-focus-scale)) !important;
+}
+
+/* Rendering the decorative layers on TV costs frames for nothing.
+
+   .btnPlay.detailButton::after used to be in this list and did not belong:
+   it is not decoration, it is `content: attr(title)` in 05-detail.css and the
+   only label the play button has. Hiding it left the primary action as a bare
+   icon rattling around inside 1.5em of pill padding — on the one layout where
+   that button is what the remote lands on first. */
 .layout-tv .skinHeader-blurred::before,
 .layout-tv .skinHeader-blurred::after,
 .layout-tv .mainDrawer::before,
 .layout-tv .mainDrawer::after,
 .layout-tv .dialog::before,
 .layout-tv .dialog::after,
-.layout-tv .actionSheetContent::after,
-.layout-tv .btnPlay.detailButton::after {
+.layout-tv .actionSheetContent::after {
   display: none;
 }

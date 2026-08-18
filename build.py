@@ -96,15 +96,20 @@ def minify(css: str) -> str:
         if kind != "text":
             out.append(chunk)
             continue
-        if DESCENDANT_PSEUDO.search(chunk):
-            hit = DESCENDANT_PSEUDO.search(chunk)
-            sys.exit(
-                "refusing to minify a descendant-pseudo selector: "
-                f"...{chunk[max(0, hit.start() - 40):hit.end() + 10].strip()}..."
-            )
+        # `.a :focus` and `.a:focus` are different selectors, so the one
+        # collapse that would be fatal here is losing the space before a
+        # pseudo. Rather than refuse such selectors outright — which blocked
+        # every `.layout-tv :focus-visible` rule the TV focus work needs —
+        # count them going in and going out, and fail only if one vanished.
+        before = len(DESCENDANT_PSEUDO.findall(chunk))
         chunk = re.sub(r"\s+", " ", chunk)
         chunk = re.sub(r" ?([{};,]) ?", r"\1", chunk)
         chunk = chunk.replace(": ", ":").replace(";}", "}")
+        after = len(DESCENDANT_PSEUDO.findall(chunk))
+        if after != before:
+            sys.exit(
+                f"minifier ate a descendant combinator: {before} -> {after}"
+            )
         out.append(chunk)
 
     return "".join(out).replace(";}", "}").strip()

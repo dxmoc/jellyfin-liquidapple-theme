@@ -106,7 +106,7 @@
   border: none;
   border-radius: var(--la-r-md);
   background-color: var(--la-fill-sunken);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.32), inset 0 0 0 1px var(--la-rim);
+  box-shadow: var(--la-well), inset 0 0 0 1px var(--la-rim);
   color: var(--la-text);
   font-family: var(--la-font);
   transition:
@@ -122,18 +122,29 @@
 .emby-input:hover:not(:focus),
 .emby-textarea:hover:not(:focus),
 .emby-select-withcolor:hover:not(.emby-select[disabled], :focus) {
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.32),
-    inset 0 0 0 1px var(--la-rim-hover);
+  box-shadow: var(--la-well), inset 0 0 0 1px var(--la-rim-hover);
 }
 
+/* 01-base's focus ring carves fields out by name, so they have to bring their
+   own — and until now that was a hand-rolled 2px at 55% white with no dark
+   separator, the weakest focus state in the theme and the only one a D-pad
+   ever lands on in a settings page. Same ring as everything else now, so
+   99-fallbacks can widen every focus state on TV from one place. */
+/* The three select selectors are not padding. The chevron rule further down
+   restates the well on `select.emby-select-withcolor` (0,1,1) and
+   `.emby-select.emby-select-withcolor` (0,2,0) and sits later in the file, so
+   a plain `.emby-select-withcolor:focus` (0,2,0) lost the tie and a focused
+   select rendered its resting state — measured on desktop, no ring at all.
+   Same trap as the material groups in 02: a specialisation needs at least as
+   many classes as the rule it has to beat. */
 .emby-input:focus,
 .emby-textarea:focus,
-.emby-select-withcolor:focus {
+.emby-select-withcolor:focus,
+select.emby-select:focus,
+select.emby-select-withcolor:focus,
+.emby-select.emby-select-withcolor:focus {
   background-color: var(--la-fill-sunken);
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.32),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
-    0 0 0 2px rgba(255, 255, 255, 0.55);
+  box-shadow: var(--la-well), var(--la-focus-ring);
   outline: none;
 }
 
@@ -147,7 +158,7 @@ select.emby-select-withcolor,
   border: none !important;
   border-radius: var(--la-r-md);
   color: var(--la-text);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.32), inset 0 0 0 1px var(--la-rim);
+  box-shadow: var(--la-well), inset 0 0 0 1px var(--la-rim);
 }
 
 .emby-select,
@@ -245,12 +256,11 @@ fieldset {
 
 .checkboxOutline:not(.multiSelectCheckboxOutline) {
   background-color: var(--la-fill-sunken);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 0 0 1px var(--la-rim);
+  box-shadow: var(--la-well), inset 0 0 0 1px var(--la-rim);
 }
 
 .checkboxContainer:hover .checkboxOutline:not(.multiSelectCheckboxOutline) {
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3),
-    inset 0 0 0 1px var(--la-rim-hover);
+  box-shadow: var(--la-well), inset 0 0 0 1px var(--la-rim-hover);
 }
 
 .emby-checkbox:checked + span + .checkboxOutline:not(.multiSelectCheckboxOutline) {
@@ -275,9 +285,18 @@ fieldset {
   color: var(--la-accent-text);
 }
 
+/* Jellyfin's checkbox is a 1x1px <input> parked next to the box you can see, so
+   the generic focus ring in 01-base lands on the 1x1 and draws a dot beside the
+   control instead of around it. Measured: the input's border box really is
+   1x1, and it really does pick up the ring. Selector shape mirrors 01-base's
+   own so it outranks it at (0,5,2) against (0,4,1); the ring moves to the
+   sibling below, where it belongs. */
+input.emby-checkbox:focus-visible:not(.emby-input):not(.emby-textarea):not(.emby-select):not(select) {
+  box-shadow: none;
+}
+
 .emby-checkbox:focus + span + .checkboxOutline {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4),
-    0 0 0 3px var(--la-accent-glow);
+  box-shadow: var(--la-focus-ring);
 }
 
 /* --- Radios ------------------------------------------------------------ */
