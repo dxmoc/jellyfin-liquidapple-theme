@@ -26,13 +26,41 @@
   border: none !important;
   border-radius: var(--la-r-lg);
   overflow: hidden !important;
-  box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
-  /* The lift springs; the shadow does not — a bouncing shadow reads as a bug,
-     and it has to keep up with the card rather than trail it. */
+  /* The press springs; the frame below does not — a bouncing shadow reads as a
+     bug, and it has to keep up with the card rather than trail it. Both belong
+     in one shorthand and on both elements: `transition` is a shorthand, so a
+     second, less specific rule naming only `transform` would be *overridden* by
+     the frame rule's `box-shadow` and the press would snap. */
   transition:
     transform var(--la-spring-t) var(--la-spring),
     box-shadow var(--la-normal) var(--la-ease);
-  will-change: transform;
+}
+
+/* The frame — rim plus shadow — is drawn once, by whichever of the two boxes
+   can actually show it. Jellyfin builds a card two ways and this file used to
+   hand both elements the same box-shadow, so in the grid every card painted it
+   twice: measured on the live library, 100 of 100 .cardScalable sit inside a
+   .cardBox.visualCardBox whose `overflow` computes to hidden, with an identical
+   shadow on both. Neither half of that copy is visible. The outer shadow is
+   clipped away by the parent, and the inset rim is covered by
+   .cardImageContainer, which measures exactly the same box (160.5x240.8 at
+   52.8,493.6) and is absolutely positioned over it — sampled at the card's own
+   left edge, x=53 reads the artwork's 154,136,110, no rim pixel anywhere. The
+   one place the rim does show is the footer band, which the artwork does not
+   cover: x=53 a hundred pixels further down reads 32,33,35.
+
+   So the home rows draw it on .cardScalable, which their plain .cardBox does
+   not clip, and the grid draws it on .visualCardBox. Measured across the home
+   page and the library, .cardScalable is a *direct* child of a .cardBox in
+   every single case (46/46 and 100/100), so the child combinator is safe.
+
+   `will-change: transform` used to stand here and had to go. The lift moved to
+   .cardBox in v0.1.3, so these two elements no longer animate a transform at
+   all — the hint bought nothing and cost a promoted compositing layer per
+   element, 200 of them on a 100-card library page. */
+.cardBox:not(.visualCardBox) > .cardScalable,
+.cardBox.visualCardBox {
+  box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
 }
 
 .cardImageContainer,
@@ -92,9 +120,12 @@
     transform: translateY(var(--la-lift)) scale(1.03);
   }
 
-  /* Rim light on whichever element actually draws the frame: the outer box in
-     the grid, the poster wrapper in the rows. */
-  .card-hoverable:hover .cardScalable,
+  /* Rim light on whichever element actually draws the frame — the same split as
+     the resting rule above, and for the same measured reason: on a grid card
+     the lift shadow on .cardScalable is clipped away and its rim sits under the
+     artwork, so it was a second --la-shadow-lift painted where nothing could
+     ever see it, once per hovered card. */
+  .card-hoverable:hover > .cardBox:not(.visualCardBox) > .cardScalable,
   .card-hoverable:hover > .visualCardBox {
     box-shadow:
       inset 0 1px 0 0 var(--la-rim-hover),
@@ -219,9 +250,9 @@
 .cardOverlayButton,
 .cardOverlayFab-primary,
 .listItemImageButton {
-  background-color: rgba(255, 255, 255, 0.16);
-  -webkit-backdrop-filter: blur(14px) saturate(180%) brightness(1.15);
-  backdrop-filter: blur(14px) saturate(180%) brightness(1.15);
+  background-color: var(--la-fill-overlay);
+  -webkit-backdrop-filter: var(--la-material-overlay);
+  backdrop-filter: var(--la-material-overlay);
   border: none;
   border-radius: var(--la-r-pill);
   box-shadow: var(--la-edge-soft), var(--la-shadow-sm);
@@ -231,6 +262,43 @@
     transform var(--la-fast) var(--la-ease-out);
 }
 
+/* A card's overlay buttons are the single biggest running cost in the theme,
+   and on a pointer device every last one of them was being paid for nothing.
+   Where jellyfin wraps them in a .cardOverlayContainer it keeps that wrapper at
+   `opacity: 0` until you hover the card — measured, twice over: the container
+   computes to 0 *and* the button inside it computes to 0 — so the blur sat on
+   elements that cannot be seen. Counted live: 169 of the home page's 209
+   backdrop-filters and 400 of the library grid's 458 were these buttons at
+   rest.
+
+   The test is the wrapper, not the input model, and that distinction is the
+   whole rule. On mobile jellyfin builds no wrapper at all: measured at 430x932,
+   41 of 41 overlay buttons render at opacity 1 with `closest('.cardOverlayContainer')`
+   returning null. A first version of this keyed on `(hover: hover)` instead and
+   took the material off all 41 of them — two 46x46 discs per screen going flat,
+   1640 pixels of visible regression in the A/B. Keying on the wrapper means the
+   blur waits exactly where something hides it and stays put everywhere else, on
+   any device, with nothing to guess.
+
+   .listItemImageButton is never in a wrapper either, so it keeps the base rule
+   above and is not mentioned again. */
+.cardOverlayContainer .cardOverlayButton,
+.cardOverlayContainer .cardOverlayFab-primary {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* …and back on with the reveal. :focus-within is the second half: pointer
+   devices have their focus reveal suppressed further down this file, but touch
+   and TV reach the overlay through focus and would otherwise press a bare fill
+   onto artwork. */
+.card-hoverable:hover .cardOverlayContainer .cardOverlayButton,
+.card-hoverable:hover .cardOverlayContainer .cardOverlayFab-primary,
+.card-hoverable:focus-within .cardOverlayContainer .cardOverlayButton,
+.card-hoverable:focus-within .cardOverlayContainer .cardOverlayFab-primary {
+  -webkit-backdrop-filter: var(--la-material-overlay);
+  backdrop-filter: var(--la-material-overlay);
+}
 
 .cardOverlayFab-primary:hover,
 .cardOverlayButton:hover,
@@ -263,6 +331,14 @@
   height: var(--la-card-fab-size);
 }
 
+/* Worth knowing before "fixing" the fill above: the play button never takes it.
+   Jellyfin owns that one through `.cardOverlayContainer > .cardOverlayFab-primary
+   { background-color: rgba(0,0,0,0.7) }` — a child combinator, (0,2,0), so the
+   single-class group loses. Measured live: the fab computes to rgba(0,0,0,0.7)
+   while the check/heart/menu buttons beside it compute to --la-fill-overlay.
+   Left alone on purpose. Raising our specificity here would put a white icon on
+   a 16% white pane over bright artwork, which is exactly the contrast problem
+   jellyfin's black disc is solving. The material lands on it either way. */
 .cardOverlayButton-br .cardOverlayButton {
   width: var(--la-card-overlay-btn);
   height: var(--la-card-overlay-btn);
@@ -286,9 +362,9 @@
 .fullSyncIndicator,
 .mediaSourceIndicator,
 .filterIndicator {
-  background: rgba(255, 255, 255, 0.2);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  backdrop-filter: blur(12px) saturate(180%);
+  background: var(--la-fill-chip);
+  -webkit-backdrop-filter: var(--la-material-chip);
+  backdrop-filter: var(--la-material-chip);
   border: none;
   border-radius: var(--la-r-pill);
   box-shadow: var(--la-edge-soft);
@@ -298,8 +374,13 @@
   min-width: 1.55em;
 }
 
+/* The one chip in the group with an opaque fill, so also the one whose blur
+   nothing can ever shine through. Measured on the library grid: 49 of them, all
+   49 computing `blur(12px) saturate(1.8)` behind a solid rgb(245,245,247). */
 .playedIndicator {
   background: var(--la-accent);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   color: var(--la-accent-text);
 }
 
@@ -358,9 +439,6 @@
   width: 2.1em;
   height: 2.1em;
   padding: 0;
-}
-
-.emby-scrollbuttons-button {
   background-color: var(--la-fill);
   -webkit-backdrop-filter: var(--la-material-thin);
   backdrop-filter: var(--la-material-thin);

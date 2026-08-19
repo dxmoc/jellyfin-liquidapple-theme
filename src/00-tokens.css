@@ -35,6 +35,25 @@
   --la-material-thin: blur(var(--la-blur-thin)) saturate(var(--la-saturate));
   --la-material-thick: blur(var(--la-blur-thick)) saturate(var(--la-saturate))
     brightness(var(--la-brightness));
+  /* Small panes that float *on* artwork rather than over the page: a card's
+     play / check / heart / menu buttons, its count and played chips, the
+     multi-select box, the OSD's play button. All four used to be literals —
+     `blur(14px) saturate(180%) brightness(1.15)` written out in four files —
+     which is why not one of the fallbacks in 99 could switch them off. Measured
+     on the live library grid with the TV token set applied: --la-material was
+     already `none` and the page still carried 449 live backdrop-filters. They
+     are tokens now, so 99-fallbacks reaches them like everything else. */
+  --la-material-overlay: blur(14px) saturate(180%) brightness(1.15);
+  --la-material-chip: blur(12px) saturate(180%);
+  /* The dim behind a dialog. One filter across the whole viewport, so it is the
+     most expensive single declaration in the theme and the first one a TV box
+     should lose. */
+  --la-material-scrim: blur(4px);
+  /* Their fills. Separate from --la-fill because these sit on a poster, not on
+     chrome: when the blur goes the fill has to carry legibility alone, and 16%
+     white over bright artwork carries nothing. 99-fallbacks turns them dark. */
+  --la-fill-overlay: rgba(255, 255, 255, 0.16);
+  --la-fill-chip: rgba(255, 255, 255, 0.20);
 
   /* Fills. "chrome" sits over scrolling content and needs more body than the
      interactive fills, which float on top of already-glassy surfaces. */
