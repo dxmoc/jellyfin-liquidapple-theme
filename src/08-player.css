@@ -60,9 +60,24 @@
   box-shadow: var(--la-edge-soft), var(--la-shadow-md);
 }
 
-.iconOsd,
+.iconOsd {
+  border-radius: var(--la-r-lg);
+}
+
+/* The wrapper carries the material, the block inside only positions — the same
+   rule the action sheets had to learn. Both used to build glass here
+   (`.playerStats-stats` sat in the control tier), and since jellyfin gives that
+   block no radius while it covers the panel edge to edge, its square corners
+   stuck out of the rounded wrapper on all four sides. Two stacked fills also
+   made the panel almost opaque, which is the flat look this theme is trying to
+   avoid. `overflow: hidden` keeps anything else inside the rounding. */
 .playerStats {
   border-radius: var(--la-r-lg);
+  overflow: hidden;
+}
+
+.playerStats-content {
+  padding-top: 0.5em;
 }
 
 .iconOsdProgressInner {

@@ -52,7 +52,6 @@
 .readOnlyContent,
 .collapseContent,
 .infoBanner,
-.playerStats-stats,
 .listItemIcon:not(.listItemIcon-transparent) {
   background-color: var(--la-fill);
   -webkit-backdrop-filter: var(--la-material-thin);
