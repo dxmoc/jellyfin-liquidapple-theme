@@ -251,7 +251,13 @@ fieldset {
 .checkboxOutline {
   border: none;
   border-radius: var(--la-r-xs);
-  transition: all var(--la-fast) var(--la-ease-out);
+  /* Named rather than `all`: this box changes fill and rim, and `all` also put
+     a 160ms transition on the border-radius and the backdrop-filter of the
+     multi-select variant below, both of which only ever animate on a class
+     swap nobody sees. */
+  transition:
+    background-color var(--la-fast) var(--la-ease-out),
+    box-shadow var(--la-fast) var(--la-ease-out);
 }
 
 .checkboxOutline:not(.multiSelectCheckboxOutline) {
@@ -272,10 +278,13 @@ fieldset {
   color: var(--la-accent-text);
 }
 
+/* Same material as a card's indicator chips — it is the same thing, a small
+   pane floating on artwork — so it reads the same tokens and dies with them on
+   TV. It used to carry the recipe as a literal and survived every fallback. */
 .checkboxOutline.multiSelectCheckboxOutline {
-  background-color: rgba(255, 255, 255, 0.18);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  backdrop-filter: blur(12px) saturate(180%);
+  background-color: var(--la-fill-chip);
+  -webkit-backdrop-filter: var(--la-material-chip);
+  backdrop-filter: var(--la-material-chip);
   border-radius: var(--la-r-pill);
   box-shadow: var(--la-edge-soft);
 }

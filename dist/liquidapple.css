@@ -2830,7 +2830,13 @@ fieldset {
 .checkboxOutline {
   border: none;
   border-radius: var(--la-r-xs);
-  transition: all var(--la-fast) var(--la-ease-out);
+  /* Named rather than `all`: this box changes fill and rim, and `all` also put
+     a 160ms transition on the border-radius and the backdrop-filter of the
+     multi-select variant below, both of which only ever animate on a class
+     swap nobody sees. */
+  transition:
+    background-color var(--la-fast) var(--la-ease-out),
+    box-shadow var(--la-fast) var(--la-ease-out);
 }
 
 .checkboxOutline:not(.multiSelectCheckboxOutline) {
@@ -2851,10 +2857,13 @@ fieldset {
   color: var(--la-accent-text);
 }
 
+/* Same material as a card's indicator chips — it is the same thing, a small
+   pane floating on artwork — so it reads the same tokens and dies with them on
+   TV. It used to carry the recipe as a literal and survived every fallback. */
 .checkboxOutline.multiSelectCheckboxOutline {
-  background-color: rgba(255, 255, 255, 0.18);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  backdrop-filter: blur(12px) saturate(180%);
+  background-color: var(--la-fill-chip);
+  -webkit-backdrop-filter: var(--la-material-chip);
+  backdrop-filter: var(--la-material-chip);
   border-radius: var(--la-r-pill);
   box-shadow: var(--la-edge-soft);
 }
@@ -3065,10 +3074,14 @@ progress,
   }
 }
 
+/* The one filter in the theme that covers the entire viewport, and it runs
+   every time a context menu opens. A token, so the fallbacks in 99 can drop it
+   — on a TV box this single declaration costs more than the sheet it is
+   dimming. */
 .dialogBackdropOpened {
   background: rgba(0, 0, 0, 0.45);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: var(--la-material-scrim);
+  backdrop-filter: var(--la-material-scrim);
   opacity: 1;
 }
 
@@ -3432,11 +3445,15 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
   border-radius: var(--la-r-pill);
 }
 
+/* The card overlay material, because it is the same object: a small bright
+   pane floating on a moving picture. It stood here as its own literal, one
+   brightness step away from the card buttons (1.12 against 1.15) and outside
+   the reach of every fallback in 99. */
 .videoOsdBottom.videoOsdBottom-maincontrols .btnPause,
 .videoOsdBottom.videoOsdBottom-maincontrols .btnPlayPause {
-  background: rgba(255, 255, 255, 0.16);
-  -webkit-backdrop-filter: blur(14px) saturate(180%) brightness(1.12);
-  backdrop-filter: blur(14px) saturate(180%) brightness(1.12);
+  background: var(--la-fill-overlay);
+  -webkit-backdrop-filter: var(--la-material-overlay);
+  backdrop-filter: var(--la-material-overlay);
   border-radius: var(--la-r-pill);
   box-shadow: var(--la-edge-soft);
   color: #fff;
@@ -3984,6 +4001,14 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     --la-material-thin: none;
     --la-material-thick: none;
     --la-refract-blur: 0px;
+    --la-material-overlay: none;
+    --la-material-chip: none;
+    --la-material-scrim: none;
+    --la-card-footer-blur: 0px;
+    /* No blur left to carry these, and they sit on artwork rather than on
+       chrome, so the fill has to do the reading on its own. */
+    --la-fill-overlay: #14161c;
+    --la-fill-chip: #191b23;
     --la-fill: rgba(255, 255, 255, 0.09);
     --la-fill-hover: rgba(255, 255, 255, 0.16);
     --la-fill-thick: #1a1c24;
@@ -4000,6 +4025,11 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     --la-material-thick: none;
     --la-refract-blur: 0px;
     --la-card-footer-blur: 0px;
+    --la-material-overlay: none;
+    --la-material-chip: none;
+    --la-material-scrim: none;
+    --la-fill-overlay: #14161c;
+    --la-fill-chip: #191b23;
     --la-mesh-opacity: 0;
     --la-fill: rgba(255, 255, 255, 0.10);
     --la-fill-hover: rgba(255, 255, 255, 0.18);
@@ -4013,9 +4043,27 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     opacity: 0.28;
   }
 
+  /* Zeroing --la-refract-blur is not enough for the refraction rings: the
+     recipe is blur *plus* brightness(1.14) saturate(1.25), and those two keep
+     bending the edge whatever the blur says. Measured with the token set
+     applied, they still computed a live `blur(0px) brightness(1.14)
+     saturate(1.25)`. Someone asking for reduced transparency is asking for
+     none of that, and a backdrop-filter that renders nothing still costs a
+     render surface. Same for the card footer's blur layer: it carries no
+     background of its own, so removing it outright looks exactly like the
+     0px above and stops allocating. */
   .skinHeader-blurred:not(.osdHeader)::before,
   .dialog:not(.dialog-fullscreen)::before,
-  .mainDrawer::before {
+  .mainDrawer::before,
+  .skinHeader-blurred:not(.osdHeader)::after,
+  .mainDrawer::after,
+  .dialog:not(.dialog-fullscreen)::after,
+  .actionSheetContent::after,
+  .toast::after,
+  .upNextContainer::after,
+  .sectionTabs .emby-tabs::after,
+  .innerCardFooter::before,
+  .chapterThumbTextContainer::before {
     display: none;
   }
 }
@@ -4100,7 +4148,6 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
   .paper-icon-button-light:active:not(:disabled),
   .listItem:active,
   .navMenuOption:active,
-  .card:active .cardScalable,
   .layout-tv .show-focus:focus,
   .layout-tv .show-animation:focus,
   .layout-tv .emby-select-focusscale:focus {
@@ -4121,6 +4168,18 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
   --la-material-thin: none;
   --la-material-thick: none;
   --la-refract-blur: 0px;
+  /* These five are why the block above was only half true. The card overlay
+     buttons, the indicator chips, the card footer band and the dialog dim all
+     carried their blur as a literal rather than a token, so `--la-material:
+     none` never reached them: counted on the live library grid, 449 of the
+     page's 458 backdrop-filters survived the TV swap. On the boxes this block
+     exists for, that is the whole frame budget. */
+  --la-material-overlay: none;
+  --la-material-chip: none;
+  --la-material-scrim: none;
+  --la-card-footer-blur: 0px;
+  --la-fill-overlay: #14161c;
+  --la-fill-chip: #191b23;
   --la-fill-thick: #191b23;
   --la-fill-chrome: #14161c;
   --la-fill-dialog: #1a1c24;
@@ -4315,6 +4374,16 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
 .layout-tv .mainDrawer::after,
 .layout-tv .dialog::before,
 .layout-tv .dialog::after,
-.layout-tv .actionSheetContent::after {
+.layout-tv .actionSheetContent::after,
+/* The tab capsule's ring and the card footer's blur layer were missing from
+   this list, and both survive a token swap as a live filter rather than as
+   nothing: `blur(0px) brightness(1.14) saturate(1.25)` for the ring, and
+   `blur(0px)` for the footer. Chrome allocates a render surface for either,
+   which on the boxes this block exists for is the entire point. Counted on the
+   live home page with .layout-tv forced on: 6 backdrop-filters left after the
+   token swap, all six of them these. */
+.layout-tv .sectionTabs .emby-tabs::after,
+.layout-tv .innerCardFooter::before,
+.layout-tv .chapterThumbTextContainer::before {
   display: none;
 }

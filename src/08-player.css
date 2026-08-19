@@ -39,11 +39,15 @@
   border-radius: var(--la-r-pill);
 }
 
+/* The card overlay material, because it is the same object: a small bright
+   pane floating on a moving picture. It stood here as its own literal, one
+   brightness step away from the card buttons (1.12 against 1.15) and outside
+   the reach of every fallback in 99. */
 .videoOsdBottom.videoOsdBottom-maincontrols .btnPause,
 .videoOsdBottom.videoOsdBottom-maincontrols .btnPlayPause {
-  background: rgba(255, 255, 255, 0.16);
-  -webkit-backdrop-filter: blur(14px) saturate(180%) brightness(1.12);
-  backdrop-filter: blur(14px) saturate(180%) brightness(1.12);
+  background: var(--la-fill-overlay);
+  -webkit-backdrop-filter: var(--la-material-overlay);
+  backdrop-filter: var(--la-material-overlay);
   border-radius: var(--la-r-pill);
   box-shadow: var(--la-edge-soft);
   color: #fff;

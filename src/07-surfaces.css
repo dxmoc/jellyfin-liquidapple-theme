@@ -39,10 +39,14 @@
   }
 }
 
+/* The one filter in the theme that covers the entire viewport, and it runs
+   every time a context menu opens. A token, so the fallbacks in 99 can drop it
+   — on a TV box this single declaration costs more than the sheet it is
+   dimming. */
 .dialogBackdropOpened {
   background: rgba(0, 0, 0, 0.45);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: var(--la-material-scrim);
+  backdrop-filter: var(--la-material-scrim);
   opacity: 1;
 }
 
