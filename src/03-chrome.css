@@ -12,17 +12,33 @@
      a dialog. Seven pixels of it top and bottom of a 62px bar is a fifth of the
      whole pane and reads as a second, blurrier border inside the rim. */
   --la-refract-width: var(--la-header-refract-w);
-  /* backdrop-filter is deliberately not in this list. Jellyfin swaps the bar
-     between blurred and not by class, so the transition would have to run from
-     `none` — and animating from `none` was measured not to take in this chrome
-     at all (see the ::after note further down, which is why the pane below is
-     an opacity fade in the first place). What it did do was ask for a full
-     re-blur of the strip on every frame of a 280ms transition, on the one
-     element that sits over the scrolling page. */
-  transition:
-    transform var(--la-normal) var(--la-ease),
-    background-color var(--la-normal) var(--la-ease),
-    box-shadow var(--la-normal) var(--la-ease);
+  /* transform is the only thing here that may animate, and the list is short on
+     purpose. What the other three did, measured on the live client:
+
+     backdrop-filter never animated at all. Jellyfin swaps the bar between
+     blurred and not by class, so the transition has to run from `none`, and
+     animating from `none` was measured not to take in this chrome (see the
+     ::after note further down — that is why the pane below is an opacity fade
+     instead). It only ever asked for a full re-blur of the strip on every frame
+     of a 280ms transition, on the element that sits over the scrolling page.
+
+     background-color and box-shadow animated exactly once, and it was the bug
+     reported on 2026-08-19 as "die Topbar verschwindet nicht, wenn die Serie
+     lädt". Timeline of a home -> series navigation, sampled every 40ms:
+     jellyfin adds .semiTransparent at 155ms, so radius and blur snap away
+     immediately — but the fill was still rgba(16,18,24,0.52) with its drop
+     shadow, and took until 470ms to reach 0. For those three hundred
+     milliseconds the bar was a square-cornered dark slab with a shadow, sitting
+     on the hero artwork of the item that was still loading.
+
+     Nothing wanted that fade. Sampled across the whole scroll of the home page,
+     a library grid and mobile: the fill and the shadow are constant on every
+     single frame — only the headroom classes move, and those are transform.
+     So the pane state now lands in one frame, in both directions, and the one
+     place the header is *meant* to change gradually keeps doing so on its own:
+     the ::after pane below fades in on a scroll timeline, which is opacity on a
+     pseudo and untouched by any of this. */
+  transition: transform var(--la-normal) var(--la-ease);
 }
 
 /* The bar has to be one height on every page. jellyfin's is not: with section
