@@ -448,6 +448,13 @@ body,
   background-color: var(--la-ground);
 }
 
+/* `text-rendering: optimizeLegibility` used to stand in here and was dropped on
+   2026-08-19. Blink already shapes every run through HarfBuzz with kerning and
+   standard ligatures on, so the declaration asks for what it is doing anyway:
+   rendered against the live client with and without it, the home page came out
+   byte-identical, 0 of 2 240 000 pixels different. On WebKit it is not a no-op
+   — it forces the slow shaping path, and is the one declaration the engines
+   this theme has a whole TV fallback layer for are documented to choke on. */
 html,
 body {
   font-family: var(--la-font);
@@ -455,7 +462,6 @@ body {
   letter-spacing: var(--la-tracking-tight);
   color: var(--la-text);
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
 /* The ambient mesh. Fixed so it does not scroll with content — the glass should
@@ -681,7 +687,13 @@ a:hover,
   box-shadow: var(--la-focus-ring);
 }
 
-/* --- Scrollbars ----------------------------------------------------------- */
+/* --- Scrollbars -----------------------------------------------------------
+   The universal selector is not laziness and must stay. Both properties here
+   inherit, so `:root` would normally be enough — except that jellyfin ships
+   `* { scrollbar-color: rgb(59,59,59) rgb(32,32,32); scrollbar-width: thin }`
+   of its own (read out of the live sheet). A universal rule applies to every
+   element directly and therefore beats anything merely inherited from the root,
+   so matching its shape is the only way to win. */
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.20) transparent;
@@ -878,10 +890,15 @@ a:hover,
 .alphaPickerButton:active,
 .detailButton:active,
 .listItem:active,
-.navMenuOption:active,
-.card:active .cardScalable {
+.navMenuOption:active {
   transform: scale(0.96);
 }
+
+/* Cards used to be in that list and are not any more. 04-cards.css presses them
+   with `.card-hoverable .cardScalable:active { transform: scale(0.985) }`,
+   which scores the same (0,3,0) and arrives later in the build, so the 0.96
+   here never reached a single card — it only meant two rules describing one
+   press, with the loser still matched against every card on the page. */
 
 /* ==== 03-chrome.css ==== */
 /* ============================================================================
@@ -898,11 +915,16 @@ a:hover,
      a dialog. Seven pixels of it top and bottom of a 62px bar is a fifth of the
      whole pane and reads as a second, blurrier border inside the rim. */
   --la-refract-width: var(--la-header-refract-w);
+  /* backdrop-filter is deliberately not in this list. Jellyfin swaps the bar
+     between blurred and not by class, so the transition would have to run from
+     `none` — and animating from `none` was measured not to take in this chrome
+     at all (see the ::after note further down, which is why the pane below is
+     an opacity fade in the first place). What it did do was ask for a full
+     re-blur of the strip on every frame of a 280ms transition, on the one
+     element that sits over the scrolling page. */
   transition:
     transform var(--la-normal) var(--la-ease),
     background-color var(--la-normal) var(--la-ease),
-    -webkit-backdrop-filter var(--la-normal) var(--la-ease),
-    backdrop-filter var(--la-normal) var(--la-ease),
     box-shadow var(--la-normal) var(--la-ease);
 }
 

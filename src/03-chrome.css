@@ -12,11 +12,16 @@
      a dialog. Seven pixels of it top and bottom of a 62px bar is a fifth of the
      whole pane and reads as a second, blurrier border inside the rim. */
   --la-refract-width: var(--la-header-refract-w);
+  /* backdrop-filter is deliberately not in this list. Jellyfin swaps the bar
+     between blurred and not by class, so the transition would have to run from
+     `none` — and animating from `none` was measured not to take in this chrome
+     at all (see the ::after note further down, which is why the pane below is
+     an opacity fade in the first place). What it did do was ask for a full
+     re-blur of the strip on every frame of a 280ms transition, on the one
+     element that sits over the scrolling page. */
   transition:
     transform var(--la-normal) var(--la-ease),
     background-color var(--la-normal) var(--la-ease),
-    -webkit-backdrop-filter var(--la-normal) var(--la-ease),
-    backdrop-filter var(--la-normal) var(--la-ease),
     box-shadow var(--la-normal) var(--la-ease);
 }
 

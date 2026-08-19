@@ -60,6 +60,13 @@ body,
   background-color: var(--la-ground);
 }
 
+/* `text-rendering: optimizeLegibility` used to stand in here and was dropped on
+   2026-08-19. Blink already shapes every run through HarfBuzz with kerning and
+   standard ligatures on, so the declaration asks for what it is doing anyway:
+   rendered against the live client with and without it, the home page came out
+   byte-identical, 0 of 2 240 000 pixels different. On WebKit it is not a no-op
+   — it forces the slow shaping path, and is the one declaration the engines
+   this theme has a whole TV fallback layer for are documented to choke on. */
 html,
 body {
   font-family: var(--la-font);
@@ -67,7 +74,6 @@ body {
   letter-spacing: var(--la-tracking-tight);
   color: var(--la-text);
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
 /* The ambient mesh. Fixed so it does not scroll with content — the glass should
@@ -293,7 +299,13 @@ a:hover,
   box-shadow: var(--la-focus-ring);
 }
 
-/* --- Scrollbars ----------------------------------------------------------- */
+/* --- Scrollbars -----------------------------------------------------------
+   The universal selector is not laziness and must stay. Both properties here
+   inherit, so `:root` would normally be enough — except that jellyfin ships
+   `* { scrollbar-color: rgb(59,59,59) rgb(32,32,32); scrollbar-width: thin }`
+   of its own (read out of the live sheet). A universal rule applies to every
+   element directly and therefore beats anything merely inherited from the root,
+   so matching its shape is the only way to win. */
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.20) transparent;

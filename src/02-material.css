@@ -162,7 +162,12 @@
 .alphaPickerButton:active,
 .detailButton:active,
 .listItem:active,
-.navMenuOption:active,
-.card:active .cardScalable {
+.navMenuOption:active {
   transform: scale(0.96);
 }
+
+/* Cards used to be in that list and are not any more. 04-cards.css presses them
+   with `.card-hoverable .cardScalable:active { transform: scale(0.985) }`,
+   which scores the same (0,3,0) and arrives later in the build, so the 0.96
+   here never reached a single card — it only meant two rules describing one
+   press, with the loser still matched against every card on the page. */
