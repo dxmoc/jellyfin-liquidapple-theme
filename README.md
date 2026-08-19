@@ -20,7 +20,7 @@ One CSS file. No JavaScript, no plugin.
 Dashboard → **Branding** → **Custom CSS code**, paste this and save:
 
 ```css
-@import url("https://cdn.jsdelivr.net/gh/dxmoc/jellyfin-liquidapple-theme@v0.1.3/dist/liquidapple.min.css");
+@import url("https://cdn.jsdelivr.net/gh/dxmoc/jellyfin-liquidapple-theme@v0.1.4/dist/liquidapple.min.css");
 ```
 
 A tag is the line to use. `@main` works too and picks up every change on its
