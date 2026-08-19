@@ -2055,9 +2055,22 @@ a:hover,
   font-size: var(--la-title-size);
   font-weight: var(--la-title-weight);
   letter-spacing: var(--la-title-tracking);
-  line-height: 1.05;
+  line-height: 1.1;
   margin: 0 0 0.3em;
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6);
+  /* Jellyfin keeps this title on one line and clips whatever does not fit:
+     `white-space: nowrap` with `overflow: hidden`. At body size that is fine, at
+     hero size two things go wrong. The tight display leading pulls the box in
+     under the font's own content area — measured 79px of content in a 62px box
+     at 59.5px type — so every descender was cut off flat along the bottom. And a
+     long title simply runs out of the page: "Augsburger Puppenkiste - Jim Knopf
+     und Lukas der Lokomotivführer" measured 1632px wide in a 1600px viewport and
+     lost letters at *both* ends, because the hero centres it. Letting it wrap
+     fixes both at once, and it is what jellyfin itself does on mobile. Only the
+     hero title — `.itemName` elsewhere keeps its ellipsis. */
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .layout-mobile .nameContainer > h1.itemName,
