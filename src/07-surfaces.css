@@ -248,6 +248,30 @@
   animation: la-sheet-in var(--la-spring-sheet-t) var(--la-spring-sheet) both;
 }
 
+/* …and the entrance above has to let go again, which it does not do on its own.
+   Reported 2026-08-19: pressing "Jetzt starten" on the up-next card leaves the
+   card on screen for the whole next episode.
+
+   Jellyfin does not remove this dialog, and it does not use `.hide` on it
+   either — it adds `.upNextDialog-hidden`, which is an opacity rule. A CSS
+   animation outranks a normal declaration, and `la-sheet-in` is declared with a
+   `both` fill, so its final `opacity: 1` sits on top of that hide for good.
+   Measured at the click, sampling every 25ms: jellyfin sets the class and
+   opacity reads 0, then our animation pulls it back up — 0.059, 0.307, 0.456,
+   0.716, 0.896, 1 — and it stays at 1 through the entire next episode.
+
+   Killing the animation for the hidden state hands the element back to
+   jellyfin. The opacity here is deliberate belt and braces: the dialog's own
+   stylesheet lives in a lazily loaded chunk, so it is worth not depending on it
+   having arrived. `.toast` and `.dialog` keep the plain `both` on purpose —
+   jellyfin takes those out of the DOM rather than fading them, and dropping
+   their forwards fill would risk a base style that is not opacity 1. */
+.upNextContainer.upNextDialog-hidden {
+  animation: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .skip-button {
   border: none;
   border-radius: var(--la-r-pill);
