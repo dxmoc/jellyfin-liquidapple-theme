@@ -1,4 +1,4 @@
-/*! LiquidApple v0.1.5 - Apple Liquid Glass for Jellyfin
+/*! LiquidApple v0.1.6 - Apple Liquid Glass for Jellyfin
  * https://github.com/dxmoc/jellyfin-liquidapple-theme
  * MIT licensed. Built by build.py - edit src/, not dist/.
  */
@@ -12,7 +12,7 @@
 
 :root {
   color-scheme: dark;
-  --la-version: "0.1.5";
+  --la-version: "0.1.6";
 
   /* --- Ambient ground ------------------------------------------------------
      Glass has nothing to bend when it sits on flat black, so the page carries
