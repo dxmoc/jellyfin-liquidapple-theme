@@ -103,7 +103,15 @@
   padding-inline: 1em;
 }
 
-.detailPageSecondaryContainer {
+/* Jellyfin's dark theme paints this #101010 through
+   `.noBackdropTransparency .detailPageSecondaryContainer` — two classes, so the
+   single-class rule that used to stand here lost the tie and did nothing.
+   Measured live: an opaque 1600x862 slab starting right under the details
+   panel, with a hard horizontal edge straight across the artwork. Everything
+   below it — cast, extras, more like this — sat on black. */
+.detailPageSecondaryContainer,
+.noBackdropTransparency .detailPageSecondaryContainer,
+.noBackdropTransparency .detailPagePrimaryContainer {
   background: transparent;
   border: none;
   padding-top: 0;
@@ -463,6 +471,17 @@
   box-shadow: var(--la-edge-soft);
 }
 
+/* On a person page jellyfin builds all four rows and then puts `.hide` on every
+   one of them — there is no genre, director, writer or studio for an actor — so
+   the panel rendered as an empty 30px glass pill the full width of the page.
+   `:has` is the only way to see that from CSS; without it the panel stays
+   exactly as it was, which is the old behaviour and harmless. */
+@supports selector(:has(*)) {
+  .itemDetailsGroup:not(:has(.detailsGroupItem:not(.hide))) {
+    display: none;
+  }
+}
+
 .detailsGroupItem {
   padding: 0.4em 0;
 }
@@ -539,6 +558,21 @@
 #castCollapsible .cardScalable,
 #guestCastContent .cardScalable {
   border-radius: var(--la-r-pill);
+}
+
+/* A pill radius only reads as a circle on a square box, and jellyfin hands out
+   `overflowPortrait` here — measured 162x243, so every face came out as an egg.
+   The padder is what sizes the card, so squaring it squares the avatar. The
+   crop then has to move: a centred square crop of a 2:3 headshot takes the
+   middle of the frame and cuts the top of the head off. */
+#castCollapsible .cardPadder,
+#guestCastContent .cardPadder {
+  padding-bottom: 100%;
+}
+
+#castCollapsible .cardImageContainer,
+#guestCastContent .cardImageContainer {
+  background-position: center 15%;
 }
 
 /* --- Hero ohne Artwork ----------------------------------------------------
