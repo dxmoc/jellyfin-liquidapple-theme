@@ -20,17 +20,15 @@ One CSS file. No JavaScript, no plugin.
 Dashboard → **Branding** → **Custom CSS code**, paste this and save:
 
 ```css
-@import url("https://cdn.jsdelivr.net/gh/dxmoc/jellyfin-liquidapple-theme@v0.1.4/dist/liquidapple.min.css");
+@import url("https://cdn.jsdelivr.net/gh/dxmoc/jellyfin-liquidapple-theme@main/dist/liquidapple.min.css");
 ```
 
-A tag is the line to use. `@main` works too and picks up every change on its
-own, but jsDelivr caches it for 12 hours at the edge and tells your *browser* to
-keep it for a week — so a fix can be live and still not reach you, and a reload
-will not help. A tag has none of that: a new version is a new URL. The same file
-is on [GitHub Pages](https://dxmoc.github.io/jellyfin-liquidapple-theme/dist/liquidapple.min.css)
-(cached 10 minutes, which is the one to point at while you are changing things),
-or paste [`dist/liquidapple.min.css`](dist/liquidapple.min.css) straight into
-the box.
+Swap `@main` for a tag — `@v0.1.4` — to pin a release. `@main` follows every
+change on its own, though a new one can take a while to reach you: jsDelivr
+caches it for 12 hours, and your browser holds its copy longer still. The same
+file is on [GitHub Pages](https://dxmoc.github.io/jellyfin-liquidapple-theme/dist/liquidapple.min.css)
+if you would rather not use a CDN, or paste
+[`dist/liquidapple.min.css`](dist/liquidapple.min.css) straight into the box.
 
 `raw.githubusercontent.com` does **not** work: it serves `text/plain` with
 `nosniff`, so the browser drops the stylesheet without an error.
