@@ -73,7 +73,11 @@ def main():
     probe_file = sys.argv[4] if len(sys.argv) > 4 else None
 
     proc = subprocess.Popen(
+        # --mute-audio is not optional. LA_AUTOPLAY runs real playback, and a
+        # headless chrome still plays it out of the speakers — reported by the
+        # user mid-run on 2026-08-19, from the other side of the room.
         [CHROME, '--headless=new', '--disable-gpu', '--no-sandbox', '--no-first-run',
+         '--mute-audio',
          '--hide-scrollbars', '--force-device-scale-factor=1',
          f'--user-data-dir={PROFILE}', f'--remote-debugging-port={PORT}',
          f'--window-size={VIEWPORT[0]},{VIEWPORT[1]}']
