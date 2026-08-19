@@ -25,6 +25,53 @@
   box-shadow: none;
 }
 
+/* --- While playback is starting up --------------------------------------
+   Reported 2026-08-19: "die Topbar verschwindet nicht, wenn man eine Serie
+   startet". Jellyfin builds the player long before it hands the bar over to
+   the OSD, and in between the page's own header just stays where it is.
+   Timed from a click on a card's play button on the home page, sampled every
+   25ms:
+
+      0ms     home header: glass pane, section tabs, the lot
+      5ms     the loading spinner comes up
+    638ms     .videoPlayerContainer and <video> are in the DOM
+   4652ms     jellyfin finally sets .osdHeader and the bar goes transparent
+   7975ms     the OSD hides itself and takes the bar with it
+
+   So for four seconds a full glass capsule with a "Home | Favorites" tab
+   strip sits on top of a loading video. Stock jellyfin has the same gap; it is
+   just far less obvious there, because its bar is a flat strip rather than a
+   floating pane.
+
+   .videoPlayerContainer is the signal, and it was picked over the two
+   alternatives on measurement, not taste:
+
+     - the spinner is one permanent element jellyfin shows for *every* load,
+       page navigations included. Keying on it would blink the header away and
+       back on ordinary navigation, which trades this bug for a worse one.
+     - body.hide-scroll arrives on exactly the same tick as the container
+       (638ms) and is shared with dialogs and the drawer, so it buys nothing
+       and risks more.
+
+   The teardown was measured too, because a signal that lingers would leave the
+   header hidden on the page you come back to: one history.back() and the
+   container, the <video> and html.transparentDocument are gone in the same
+   sample, with the header already back to its pane. Nothing hangs.
+
+   Audio is untouched — that plays through <audio> and the now playing bar,
+   and never builds a .videoPlayerContainer.
+
+   The first 638ms are deliberately not covered. Until the player exists the
+   home page is still the home page, and its header is not wrong yet.
+
+   No :has, no rule — the theme keeps jellyfin's behaviour, which is what old
+   TV webviews have today. */
+@supports selector(:has(*)) {
+  :root:has(.videoPlayerContainer) .skinHeader:not(.osdHeader) {
+    display: none;
+  }
+}
+
 .osdControls {
   gap: 0.2em;
 }
