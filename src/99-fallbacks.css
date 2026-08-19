@@ -113,8 +113,7 @@
   }
 
   /* Every transform-based reaction, flattened. Colour changes stay. */
-  .card-hoverable:hover .cardScalable,
-  .card-hoverable:hover .visualCardBox,
+  .card-hoverable:hover > .cardBox,
   #scenesContent .cardScalable:hover,
   .card-hoverable .cardScalable:active,
   .cardOverlayFab-primary:hover,

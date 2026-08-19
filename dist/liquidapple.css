@@ -1380,8 +1380,17 @@ a:hover,
 .cardBox {
   background: transparent;
   border: none;
-  margin: 0;
-  padding: 0.45em;
+  /* Jellyfin's own gutter is `margin: 0.6em` on this element and this file used
+     to zero it. Measured in the library grid at 1600px wide: 17px of air
+     between the columns and 0px between the rows, so every card's box sat
+     directly on the box of the row below — the "it bumps into the one
+     underneath" report, visible without hovering anything. Symmetric again, and
+     the gap is what gives a lifted card room to grow into. Jellyfin pins
+     `padding: 0 !important` here, so padding is not an option. */
+  margin: 0.55em;
+  /* The lift lives on this element now, so the spring has to as well —
+     jellyfin sets `transition: none` right here. */
+  transition: transform var(--la-spring-t) var(--la-spring);
 }
 
 .cardScalable,
@@ -1440,15 +1449,25 @@ a:hover,
     z-index: 2;
   }
 
-  /* The artwork lifts. Nothing else does — and specifically not
-     `.visualCardBox`, the outer box the library grid draws around poster *and*
-     title. Scaling that grows the whole card, text included, straight into the
-     row below: the frame the user kept seeing over the neighbouring cards.
-     Both used to be listed here, which also scaled the poster twice over
-     (1.03 x 1.03), since in the grid `.cardScalable` sits inside the box. One
-     element, and it is the one holding the picture. */
-  .card-hoverable:hover .cardScalable {
+  /* The whole box rises — poster, title and year as one object. The direct
+     child is the right element in both layouts: `.cardBox.visualCardBox` in the
+     grid, plain `.cardBox` in the home rows. Two versions of this rule have
+     already been wrong. Scaling `.visualCardBox` *and* `.cardScalable` scaled
+     the poster twice and grew the card into the row below; scaling
+     `.cardScalable` alone then looked like no lift at all, because it sits
+     inside `.visualCardBox` and its `overflow: hidden`. Measured with the
+     pointer on a grid card: the artwork ran from x=50 to 216 inside a box from
+     53 to 213 — 3px past each side and 8px past the top, all of it clipped. The
+     card did not appear to rise, it appeared to swell into a square-cornered
+     full-bleed rectangle and touch its neighbours. */
+  .card-hoverable:hover > .cardBox {
     transform: translateY(var(--la-lift)) scale(1.03);
+  }
+
+  /* Rim light on whichever element actually draws the frame: the outer box in
+     the grid, the poster wrapper in the rows. */
+  .card-hoverable:hover .cardScalable,
+  .card-hoverable:hover > .visualCardBox {
     box-shadow:
       inset 0 1px 0 0 var(--la-rim-hover),
       inset 0 0 0 1px var(--la-rim-hover),
@@ -3902,8 +3921,7 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
   }
 
   /* Every transform-based reaction, flattened. Colour changes stay. */
-  .card-hoverable:hover .cardScalable,
-  .card-hoverable:hover .visualCardBox,
+  .card-hoverable:hover > .cardBox,
   #scenesContent .cardScalable:hover,
   .card-hoverable .cardScalable:active,
   .cardOverlayFab-primary:hover,
