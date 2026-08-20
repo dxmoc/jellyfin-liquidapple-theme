@@ -106,6 +106,30 @@
   color: var(--la-accent-text);
 }
 
+/* --- Der Pause-Knopf ringt sich beim Aufblenden selbst ------------------
+   Gemeldet 2026-08-20: "wenn ich in jellyfin auf pause druecke, dann wird das
+   so weiss umrandet". Es ist nicht der Klick. Jellyfin ruft beim Zeigen des OSD
+   von sich aus focus() auf .btnPause (gemessen: focusManager aus
+   playback-video.*.chunk.js), und Chrome wertet einen *skript*-gesetzten Fokus
+   als :focus-visible. Live gemessen, ohne dass irgendetwas geklickt wurde:
+
+     active: BUTTON.btnPause | :focus=true :focus-visible=true :hover=false
+     box-shadow: shade 2px, #fff 4px, shade 5px   <- --la-focus-ring
+
+   Deshalb erscheint der Ring bei jedem Weg, der das OSD hochholt: Pause, Klick
+   in die Bildmitte, Mausbewegung. Dieselbe Falle wie bei den Karten in
+   04-cards.css, nur dass hier nicht einmal eine Tastatur im Spiel gewesen sein
+   muss.
+
+   Nur dieser eine Knopf verliert den Ring, und nur auf Zeigergeraeten. Jeder
+   andere OSD-Knopf ringt beim Tabben weiter, und .layout-tv bleibt unangetastet
+   - dort *ist* Fokus die Navigation. Die Spezifitaet ist (0,6,0) und trifft die
+   Basisregel damit genau; gewonnen wird ueber die Dateireihenfolge. */
+:root:not(.layout-tv) .videoOsdBottom.videoOsdBottom-maincontrols .btnPause:focus-visible,
+:root:not(.layout-tv) .videoOsdBottom.videoOsdBottom-maincontrols .btnPlayPause:focus-visible {
+  box-shadow: var(--la-edge-soft);
+}
+
 .osdPoster img {
   border-radius: var(--la-r-md);
   box-shadow: var(--la-edge-soft), var(--la-shadow-md);
