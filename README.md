@@ -23,7 +23,7 @@ Dashboard → **Branding** → **Custom CSS code**, paste this and save:
 @import url("https://cdn.jsdelivr.net/gh/dxmoc/jellyfin-liquidapple-theme@main/dist/liquidapple.min.css");
 ```
 
-Swap `@main` for a tag — `@v0.1.9` — to pin a release. `@main` follows every
+Swap `@main` for a tag — `@v0.1.10` — to pin a release. `@main` follows every
 change on its own, though a new one can take a while to reach you: jsDelivr
 caches it for 12 hours, and your browser holds its copy longer still. The same
 file is on [GitHub Pages](https://dxmoc.github.io/jellyfin-liquidapple-theme/dist/liquidapple.min.css)
