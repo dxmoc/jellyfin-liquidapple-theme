@@ -328,7 +328,7 @@ input.emby-checkbox:focus-visible:not(.emby-input):not(.emby-textarea):not(.emby
   height: 0.32em;
   margin-top: -0.16em;
   border-radius: var(--la-r-pill);
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--la-track);
   overflow: hidden;
   transition:
     height var(--la-fast) var(--la-ease-out),
@@ -346,6 +346,10 @@ input.emby-checkbox:focus-visible:not(.emby-input):not(.emby-textarea):not(.emby
   border-radius: var(--la-r-pill);
 }
 
+/* Stays empty by default. Jellyfin only writes buffered ranges into this
+   element on the *position* slider; on the volume slider it is left without a
+   width, so anything painted here would cover the whole track. The buffered
+   fill is therefore scoped in 08-player.css, not handed out globally. */
 .mdl-slider-background-upper {
   background: transparent;
 }

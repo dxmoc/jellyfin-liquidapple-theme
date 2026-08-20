@@ -70,6 +70,23 @@
      filter, Reduce Transparency and TV would never have reached a dialog. */
   --la-fill-dialog: rgba(22, 24, 32, 0.72);
 
+  /* The skip-intro button is the one control that sits on a moving picture with
+     nothing under it — no chrome, no poster, no scrim. A white 7% fill on a
+     thin blur turns into a bright slab the moment the frame behind it is
+     bright, which is exactly when the button is on screen. So it runs dark,
+     like the OSD's own chrome, one step lighter so it still reads as a control
+     rather than a hole. */
+  --la-fill-skip: rgba(14, 16, 22, 0.62);
+  --la-fill-skip-hover: rgba(30, 33, 42, 0.78);
+
+  /* --- Progress tracks -----------------------------------------------------
+     Three states share one bar, so they have to be three readable steps: empty
+     track, buffered-ahead, played. The played part is --la-accent; these two
+     are what is left. --la-track-buffered lands on jellyfin's own
+     .mdl-slider-background-upper — see 08-player.css. */
+  --la-track: rgba(255, 255, 255, 0.22);
+  --la-track-buffered: rgba(255, 255, 255, 0.42);
+
   /* --- Rim light -----------------------------------------------------------
      A pane of glass is lit from above and shadowed below. This one composite
      shadow does most of the visual work in the whole theme. */

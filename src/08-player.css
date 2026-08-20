@@ -160,6 +160,31 @@
   border-radius: var(--la-r-pill);
 }
 
+/* --- How far ahead it has loaded ----------------------------------------
+   Asked for 2026-08-20: see the buffer on the timeline. Jellyfin has been
+   writing it all along — the theme was painting it transparent. Measured on the
+   live player:
+
+     video.buffered = [0, 17.94]  at duration 7054.14
+     .mdl-slider-background-upper  style="left: 0%; width: 0.254337%"
+
+   17.94 / 7054.14 = 0.2543%. That element *is* the buffered range, and
+   06-controls.css was blanking it.
+
+   The sibling `~` is what does the scoping: there is no container class to hang
+   this on, but the `<input class="osdPositionSlider">` sits before the track
+   container, so the video slider has an anchor and the volume slider does not.
+   And the volume slider is exactly why the scope is needed — jellyfin never
+   gives its `.mdl-slider-background-upper` a width (measured: no style
+   attribute at all), so a global fill would colour its whole track.
+
+   `.mdl-slider-background-lower` comes later in the DOM and therefore paints on
+   top: played over buffered, no z-index needed. */
+.osdPositionSlider ~ .mdl-slider-background-flex-container .mdl-slider-background-upper {
+  background: var(--la-track-buffered);
+  border-radius: var(--la-r-pill);
+}
+
 .positionTime,
 .startTimeText,
 .endTimeText,
