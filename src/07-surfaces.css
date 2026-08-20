@@ -272,11 +272,24 @@
   pointer-events: none;
 }
 
+/* The only control in the theme that overrides its own tier's fill. It floats
+   on the picture itself, so the tier-2 white fill made it flare on bright
+   frames; --la-fill-skip is dark instead. Everything else about the tier — the
+   thin material, the rim, the transitions — is kept from 02. */
 .skip-button {
+  background-color: var(--la-fill-skip);
   border: none;
   border-radius: var(--la-r-pill);
   padding: 0.6em 1.3em;
   font-weight: 600;
+}
+
+.skip-button:hover {
+  background-color: var(--la-fill-skip-hover);
+  box-shadow:
+    inset 0 1px 0 0 var(--la-rim-hover),
+    inset 0 0 0 1px var(--la-rim-hover),
+    var(--la-shadow-sm);
 }
 
 /* --- Lists ------------------------------------------------------------- */

@@ -31,6 +31,8 @@
     --la-fill-thick: #1a1c24;
     --la-fill-chrome: #14161c;
     --la-fill-dialog: #1a1c24;
+    --la-fill-skip: #14161c;
+    --la-fill-skip-hover: #23262f;
   }
 }
 
@@ -53,6 +55,8 @@
     --la-fill-thick: #1a1c24;
     --la-fill-chrome: #14161c;
     --la-fill-dialog: #1a1c24;
+    --la-fill-skip: #14161c;
+    --la-fill-skip-hover: #23262f;
     --la-ground: #0b0c10;
   }
 
@@ -200,6 +204,8 @@
   --la-fill-thick: #191b23;
   --la-fill-chrome: #14161c;
   --la-fill-dialog: #1a1c24;
+  --la-fill-skip: #14161c;
+  --la-fill-skip-hover: #23262f;
   --la-mesh-opacity: 0.5;
   --la-lift: 0px;
 
