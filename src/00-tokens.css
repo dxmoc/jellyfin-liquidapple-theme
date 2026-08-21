@@ -33,6 +33,14 @@
   --la-material: blur(var(--la-blur)) saturate(var(--la-saturate))
     brightness(var(--la-brightness));
   --la-material-thin: blur(var(--la-blur-thin)) saturate(var(--la-saturate));
+  /* The thin material minus the saturation, for the pills on the item page.
+     --la-saturate is what makes a *pane* read as glass; on a 25px chip it only
+     amplifies the hue of whatever slice of the frame it happens to cover, and
+     a row of tags came out as one blue, one orange and one olive. Measured on
+     Avatar: Fire and Ash, the pill over the fire read rgb(228,135,108) against
+     rgb(76,93,122) two pills to its left. Blur without saturate keeps the
+     backdrop reading through as light and dark, not as colour. */
+  --la-material-tag: blur(var(--la-blur-thin));
   --la-material-thick: blur(var(--la-blur-thick)) saturate(var(--la-saturate))
     brightness(var(--la-brightness));
   /* Small panes that float *on* artwork rather than over the page: a card's
@@ -87,6 +95,20 @@
      rather than a hole. */
   --la-fill-skip: rgba(14, 16, 22, 0.62);
   --la-fill-skip-hover: rgba(30, 33, 42, 0.78);
+
+  /* Same story as the skip button, on the item page: the tag pills and the
+     external-link buttons are the only tier-2 controls that float on the hero
+     backdrop with nothing between them and it. On a white 7% fill the pill is
+     a window rather than a control — measured on Avatar: Fire and Ash, one row
+     of tags came out blue, orange and olive depending on which part of the
+     frame each one happened to sit over, and hovering one washed it neutral
+     grey, because 13% white plus a 24% rim desaturates whatever it covers.
+     A dark neutral fill keeps the pill the same object over any frame and
+     turns hover back into what it should be — one step brighter, same hue.
+     Lighter than --la-fill-skip: these also have to read on a dark ground,
+     where the skip button never appears. */
+  --la-fill-tag: rgba(30, 33, 42, 0.72);
+  --la-fill-tag-hover: rgba(56, 61, 74, 0.86);
 
   /* --- Progress tracks -----------------------------------------------------
      Three states share one bar, so they have to be three readable steps: empty

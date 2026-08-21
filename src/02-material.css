@@ -171,9 +171,7 @@
 .button-alt:hover,
 .fab:hover,
 .emby-tab-button:hover,
-.alphaPickerButton:hover,
-.itemExternalLinks.focuscontainer-x > .button-link:hover,
-.itemTags > a:hover {
+.alphaPickerButton:hover {
   background-color: var(--la-fill-hover);
   box-shadow:
     inset 0 1px 0 0 var(--la-rim-hover),

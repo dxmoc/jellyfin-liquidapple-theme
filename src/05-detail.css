@@ -530,8 +530,17 @@
   line-height: 2.25;
 }
 
+/* The fill is the one thing these take from --la-fill-tag instead of the
+   control tier — they are the only tier-2 controls with the hero backdrop
+   directly behind them, and a 7% white fill made each pill the colour of
+   whatever part of the frame it happened to land on. Everything else about the
+   tier — the thin material, the rim, the transitions — still comes from 02.
+   Same trade as .skip-button, for the same reason. */
 .itemExternalLinks.focuscontainer-x > .button-link,
 .itemTags > a {
+  background-color: var(--la-fill-tag);
+  -webkit-backdrop-filter: var(--la-material-tag);
+  backdrop-filter: var(--la-material-tag);
   padding: 0.35em 0.85em;
   border-radius: var(--la-r-pill);
   font-size: 0.88em;
@@ -540,8 +549,17 @@
   color: var(--la-text-dim);
 }
 
+/* Out of 02's shared hover group, because that one is written for a control
+   sitting on chrome: white over white reads as a lift, white over artwork
+   reads as a different colour. Same rim and shadow, one brighter step of the
+   same neutral fill. */
 .itemExternalLinks.focuscontainer-x > .button-link:hover,
 .itemTags > a:hover {
+  background-color: var(--la-fill-tag-hover);
+  box-shadow:
+    inset 0 1px 0 0 var(--la-rim-hover),
+    inset 0 0 0 1px var(--la-rim-hover),
+    var(--la-shadow-sm);
   color: #fff;
 }
 
