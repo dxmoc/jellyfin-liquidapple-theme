@@ -69,6 +69,15 @@
      opaque swaps in 99-fallbacks.css all target the root — so no-backdrop-
      filter, Reduce Transparency and TV would never have reached a dialog. */
   --la-fill-dialog: rgba(22, 24, 32, 0.72);
+  /* The form dialog's footer is the only bar in the theme with scrolling
+     content passing *underneath* it — jellyfin pins it across the dialog's
+     bottom edge while a metadata form 6000px tall runs past below. A second
+     backdrop-filter inside an already-filtered dialog is against the rules, so
+     the fill alone has to stop an input ghosting through it. At 0.94 the date
+     field's calendar glyph still read through at rgb(34,36,42) against a
+     rgb(19,22,28) bar; 0.97 puts the brightest thing the form has — white text
+     — 8 levels above the bar, which is below what shows on a dark surface. */
+  --la-fill-dialog-bar: rgba(20, 22, 29, 0.97);
 
   /* The skip-intro button is the one control that sits on a moving picture with
      nothing under it — no chrome, no poster, no scrim. A white 7% fill on a

@@ -128,8 +128,36 @@
   );
 }
 
+/* A dialog gets the same result the other way round: the sheen drops *below*
+   its children instead of the children being lifted above the sheen.
+
+   Lifting them cost a real bug (2026-08-21, "verbuggtes UI im Edit-Metadata-
+   Menü"). `position: relative` on .formDialogContent makes the scroller the
+   containing block for .formDialogFooter, which jellyfin pins with
+   `position: absolute; bottom: 0` and expects to hang off the *dialog* — so
+   the button row scrolled up out of the dialog with the form. Nothing about a
+   scroller wants to be a containing block, and the header and drawer are not
+   scrollers, which is why only the dialog moves.
+
+   Negative z-index paints above the element's own background and below its
+   in-flow content, which is exactly where a sheen belongs. It needs .dialog to
+   be a stacking context, and backdrop-filter only makes it one while there is
+   a backdrop-filter — 99-fallbacks swaps that to `none` in three places, and
+   the sheen would then fall behind the dialog's opaque fill. `isolation`
+   guarantees it in every one of them.
+
+   The ::after refraction ring stays at 2 and now paints *over* the content
+   rather than under it. That is the right way round for a ring hugging the
+   pane's edge; a dialog's own padding keeps text out of those 7px anyway. */
+.dialog:not(.dialog-fullscreen) {
+  isolation: isolate;
+}
+
+.dialog:not(.dialog-fullscreen)::before {
+  z-index: -1;
+}
+
 /* Keep real content above the two decorative layers. */
-.dialog:not(.dialog-fullscreen) > *,
 .mainDrawer > *,
 .skinHeader-blurred:not(.osdHeader) > * {
   position: relative;

@@ -66,6 +66,20 @@
   border-top: 1px solid var(--la-rim);
 }
 
+/* The one footer that cannot stay transparent. With the containing block put
+   back (see the sheen note in 02-material), jellyfin pins this bar across the
+   dialog's bottom edge and the form scrolls *underneath* it — a metadata form
+   is 6000-8000px tall. Transparent there meant reading the last field through
+   the buttons; it was half of what got reported on 2026-08-21 as a broken
+   metadata editor. A second backdrop-filter inside an already-filtered dialog
+   is against the rules, so the fill carries it alone.
+   Only the footers that actually overlap a scroller — a form dialog that keeps
+   its footer outside .formDialogContent has nothing passing under it and stays
+   flush with the pane. */
+.formDialogContent .formDialogFooter:not(.formDialogFooter-clear) {
+  background: var(--la-fill-dialog-bar);
+}
+
 .formDialogHeaderTitle {
   font-weight: 650;
 }
