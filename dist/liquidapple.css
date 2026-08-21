@@ -1,4 +1,4 @@
-/*! LiquidApple v0.1.10 - Apple Liquid Glass for Jellyfin
+/*! LiquidApple v0.1.11 - Apple Liquid Glass for Jellyfin
  * https://github.com/dxmoc/jellyfin-liquidapple-theme
  * MIT licensed. Built by build.py - edit src/, not dist/.
  */
@@ -12,7 +12,7 @@
 
 :root {
   color-scheme: dark;
-  --la-version: "0.1.10";
+  --la-version: "0.1.11";
 
   /* --- Ambient ground ------------------------------------------------------
      Glass has nothing to bend when it sits on flat black, so the page carries
@@ -39,6 +39,14 @@
   --la-material: blur(var(--la-blur)) saturate(var(--la-saturate))
     brightness(var(--la-brightness));
   --la-material-thin: blur(var(--la-blur-thin)) saturate(var(--la-saturate));
+  /* The thin material minus the saturation, for the pills on the item page.
+     --la-saturate is what makes a *pane* read as glass; on a 25px chip it only
+     amplifies the hue of whatever slice of the frame it happens to cover, and
+     a row of tags came out as one blue, one orange and one olive. Measured on
+     Avatar: Fire and Ash, the pill over the fire read rgb(228,135,108) against
+     rgb(76,93,122) two pills to its left. Blur without saturate keeps the
+     backdrop reading through as light and dark, not as colour. */
+  --la-material-tag: blur(var(--la-blur-thin));
   --la-material-thick: blur(var(--la-blur-thick)) saturate(var(--la-saturate))
     brightness(var(--la-brightness));
   /* Small panes that float *on* artwork rather than over the page: a card's
@@ -75,6 +83,15 @@
      opaque swaps in 99-fallbacks.css all target the root — so no-backdrop-
      filter, Reduce Transparency and TV would never have reached a dialog. */
   --la-fill-dialog: rgba(22, 24, 32, 0.72);
+  /* The form dialog's footer is the only bar in the theme with scrolling
+     content passing *underneath* it — jellyfin pins it across the dialog's
+     bottom edge while a metadata form 6000px tall runs past below. A second
+     backdrop-filter inside an already-filtered dialog is against the rules, so
+     the fill alone has to stop an input ghosting through it. At 0.94 the date
+     field's calendar glyph still read through at rgb(34,36,42) against a
+     rgb(19,22,28) bar; 0.97 puts the brightest thing the form has — white text
+     — 8 levels above the bar, which is below what shows on a dark surface. */
+  --la-fill-dialog-bar: rgba(20, 22, 29, 0.97);
 
   /* The skip-intro button is the one control that sits on a moving picture with
      nothing under it — no chrome, no poster, no scrim. A white 7% fill on a
@@ -84,6 +101,20 @@
      rather than a hole. */
   --la-fill-skip: rgba(14, 16, 22, 0.62);
   --la-fill-skip-hover: rgba(30, 33, 42, 0.78);
+
+  /* Same story as the skip button, on the item page: the tag pills and the
+     external-link buttons are the only tier-2 controls that float on the hero
+     backdrop with nothing between them and it. On a white 7% fill the pill is
+     a window rather than a control — measured on Avatar: Fire and Ash, one row
+     of tags came out blue, orange and olive depending on which part of the
+     frame each one happened to sit over, and hovering one washed it neutral
+     grey, because 13% white plus a 24% rim desaturates whatever it covers.
+     A dark neutral fill keeps the pill the same object over any frame and
+     turns hover back into what it should be — one step brighter, same hue.
+     Lighter than --la-fill-skip: these also have to read on a dark ground,
+     where the skip button never appears. */
+  --la-fill-tag: rgba(30, 33, 42, 0.72);
+  --la-fill-tag-hover: rgba(56, 61, 74, 0.86);
 
   /* --- Progress tracks -----------------------------------------------------
      Three states share one bar, so they have to be three readable steps: empty
@@ -873,8 +904,36 @@ a:hover,
   );
 }
 
+/* A dialog gets the same result the other way round: the sheen drops *below*
+   its children instead of the children being lifted above the sheen.
+
+   Lifting them cost a real bug (2026-08-21, "verbuggtes UI im Edit-Metadata-
+   Menü"). `position: relative` on .formDialogContent makes the scroller the
+   containing block for .formDialogFooter, which jellyfin pins with
+   `position: absolute; bottom: 0` and expects to hang off the *dialog* — so
+   the button row scrolled up out of the dialog with the form. Nothing about a
+   scroller wants to be a containing block, and the header and drawer are not
+   scrollers, which is why only the dialog moves.
+
+   Negative z-index paints above the element's own background and below its
+   in-flow content, which is exactly where a sheen belongs. It needs .dialog to
+   be a stacking context, and backdrop-filter only makes it one while there is
+   a backdrop-filter — 99-fallbacks swaps that to `none` in three places, and
+   the sheen would then fall behind the dialog's opaque fill. `isolation`
+   guarantees it in every one of them.
+
+   The ::after refraction ring stays at 2 and now paints *over* the content
+   rather than under it. That is the right way round for a ring hugging the
+   pane's edge; a dialog's own padding keeps text out of those 7px anyway. */
+.dialog:not(.dialog-fullscreen) {
+  isolation: isolate;
+}
+
+.dialog:not(.dialog-fullscreen)::before {
+  z-index: -1;
+}
+
 /* Keep real content above the two decorative layers. */
-.dialog:not(.dialog-fullscreen) > *,
 .mainDrawer > *,
 .skinHeader-blurred:not(.osdHeader) > * {
   position: relative;
@@ -888,9 +947,7 @@ a:hover,
 .button-alt:hover,
 .fab:hover,
 .emby-tab-button:hover,
-.alphaPickerButton:hover,
-.itemExternalLinks.focuscontainer-x > .button-link:hover,
-.itemTags > a:hover {
+.alphaPickerButton:hover {
   background-color: var(--la-fill-hover);
   box-shadow:
     inset 0 1px 0 0 var(--la-rim-hover),
@@ -982,11 +1039,33 @@ a:hover,
   padding-bottom: 0;
 }
 
+/* --- The bar's own material ----------------------------------------------
+   02's tier-1 recipe is written for a pane that lands on scrolling page
+   content. The header is the one pane that lands on *artwork* on every item
+   page, and glass amplifies whatever is behind it. --la-material-header and
+   --la-fill-header-solid — a calmer saturate and a denser fill — were added
+   for mobile on 2026-08-19 after the bar turned into a solid red slab over red
+   artwork; the desktop bar was left on the shared recipe and does exactly the
+   same thing. Measured on Avatar: Fire and Ash at 1537px, scrolled to y=441:
+   the bar's centre read rgb(130, 47, 13). An orange toolbar, reported the same
+   day as "die Topbar ändert die Farbe wenn ich runterscrolle".
+
+   So the header material is now the header's everywhere, not mobile's alone.
+   Two classes plus :not() to clear 02's `.skinHeader-blurred:not(.osdHeader)`;
+   the OSD header is excluded there and stays excluded here. */
+.skinHeader.skinHeader-blurred:not(.osdHeader),
+.skinHeader.skinHeader-withBackground:not(.osdHeader) {
+  background-color: var(--la-fill-header-solid);
+  -webkit-backdrop-filter: var(--la-material-header);
+  backdrop-filter: var(--la-material-header);
+}
+
 /* Mobile runs the bar full-bleed, so there are no side or top edges to draw —
    but --la-edge from 02 rings the whole pane, and those hairlines land right
    on the screen edges and read as a frame around a floating box. One bottom
-   hairline instead, and the calmer header material so bright artwork behind
-   the bar stops turning it into a slab of that colour. */
+   hairline instead. The fill and the material repeat the rule above on purpose:
+   this selector also catches a bare .skinHeader, which carries neither of the
+   two state classes and would otherwise be left transparent. */
 .layout-mobile .skinHeader:not(.osdHeader) {
   background-color: var(--la-fill-header-solid);
   -webkit-backdrop-filter: var(--la-material-header);
@@ -1118,9 +1197,12 @@ a:hover,
   mask: none;
   /* flush on mobile, so square — the capsule radius is added on desktop below */
   border-radius: 0;
-  background: var(--la-fill-chrome);
-  -webkit-backdrop-filter: var(--la-material);
-  backdrop-filter: var(--la-material);
+  /* The header's own material, not 02's — this pane fades in *over the hero
+     artwork*, which is the worst case the calmer recipe exists for. See the
+     material rule at the top of this file. */
+  background: var(--la-fill-header-solid);
+  -webkit-backdrop-filter: var(--la-material-header);
+  backdrop-filter: var(--la-material-header);
   box-shadow: var(--la-edge), var(--la-shadow-lg);
   opacity: 0;
   pointer-events: none;
@@ -2491,8 +2573,17 @@ a:hover,
   line-height: 2.25;
 }
 
+/* The fill is the one thing these take from --la-fill-tag instead of the
+   control tier — they are the only tier-2 controls with the hero backdrop
+   directly behind them, and a 7% white fill made each pill the colour of
+   whatever part of the frame it happened to land on. Everything else about the
+   tier — the thin material, the rim, the transitions — still comes from 02.
+   Same trade as .skip-button, for the same reason. */
 .itemExternalLinks.focuscontainer-x > .button-link,
 .itemTags > a {
+  background-color: var(--la-fill-tag);
+  -webkit-backdrop-filter: var(--la-material-tag);
+  backdrop-filter: var(--la-material-tag);
   padding: 0.35em 0.85em;
   border-radius: var(--la-r-pill);
   font-size: 0.88em;
@@ -2501,8 +2592,17 @@ a:hover,
   color: var(--la-text-dim);
 }
 
+/* Out of 02's shared hover group, because that one is written for a control
+   sitting on chrome: white over white reads as a lift, white over artwork
+   reads as a different colour. Same rim and shadow, one brighter step of the
+   same neutral fill. */
 .itemExternalLinks.focuscontainer-x > .button-link:hover,
 .itemTags > a:hover {
+  background-color: var(--la-fill-tag-hover);
+  box-shadow:
+    inset 0 1px 0 0 var(--la-rim-hover),
+    inset 0 0 0 1px var(--la-rim-hover),
+    var(--la-shadow-sm);
   color: #fff;
 }
 
@@ -3157,6 +3257,20 @@ progress,
 
 .formDialogFooter:not(.formDialogFooter-clear) {
   border-top: 1px solid var(--la-rim);
+}
+
+/* The one footer that cannot stay transparent. With the containing block put
+   back (see the sheen note in 02-material), jellyfin pins this bar across the
+   dialog's bottom edge and the form scrolls *underneath* it — a metadata form
+   is 6000-8000px tall. Transparent there meant reading the last field through
+   the buttons; it was half of what got reported on 2026-08-21 as a broken
+   metadata editor. A second backdrop-filter inside an already-filtered dialog
+   is against the rules, so the fill carries it alone.
+   Only the footers that actually overlap a scroller — a form dialog that keeps
+   its footer outside .formDialogContent has nothing passing under it and stays
+   flush with the pane. */
+.formDialogContent .formDialogFooter:not(.formDialogFooter-clear) {
+  background: var(--la-fill-dialog-bar);
 }
 
 .formDialogHeaderTitle {
@@ -4191,6 +4305,8 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     --la-material: none;
     --la-material-thin: none;
     --la-material-thick: none;
+    --la-material-header: none;
+    --la-material-tag: none;
     --la-refract-blur: 0px;
     --la-material-overlay: none;
     --la-material-chip: none;
@@ -4207,6 +4323,10 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     --la-fill-dialog: #1a1c24;
     --la-fill-skip: #14161c;
     --la-fill-skip-hover: #23262f;
+    --la-fill-tag: #262a35;
+    --la-fill-tag-hover: #383d4b;
+    --la-fill-dialog-bar: #16181f;
+    --la-fill-header-solid: #0d0f14;
   }
 }
 
@@ -4216,6 +4336,8 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     --la-material: none;
     --la-material-thin: none;
     --la-material-thick: none;
+    --la-material-header: none;
+    --la-material-tag: none;
     --la-refract-blur: 0px;
     --la-card-footer-blur: 0px;
     --la-material-overlay: none;
@@ -4231,6 +4353,10 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     --la-fill-dialog: #1a1c24;
     --la-fill-skip: #14161c;
     --la-fill-skip-hover: #23262f;
+    --la-fill-tag: #262a35;
+    --la-fill-tag-hover: #383d4b;
+    --la-fill-dialog-bar: #16181f;
+    --la-fill-header-solid: #0d0f14;
     --la-ground: #0b0c10;
   }
 
@@ -4274,6 +4400,9 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
     --la-fill: rgba(255, 255, 255, 0.14);
     --la-fill-chrome: rgba(10, 11, 15, 0.9);
     --la-fill-dialog: rgba(20, 22, 30, 0.95);
+    --la-fill-header-solid: rgba(10, 11, 15, 0.92);
+    --la-fill-tag: rgba(30, 33, 42, 0.86);
+    --la-fill-tag-hover: rgba(58, 63, 77, 0.94);
     /* Whoever asks for more contrast asks for it here first. */
     --la-focus: #fff;
     --la-focus-band: 3px;
@@ -4362,6 +4491,8 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
   --la-material: none;
   --la-material-thin: none;
   --la-material-thick: none;
+  --la-material-header: none;
+  --la-material-tag: none;
   --la-refract-blur: 0px;
   /* These five are why the block above was only half true. The card overlay
      buttons, the indicator chips, the card footer band and the dialog dim all
@@ -4380,6 +4511,10 @@ table:not(.MuiTable-root.MuiTable-stickyHeader) {
   --la-fill-dialog: #1a1c24;
   --la-fill-skip: #14161c;
   --la-fill-skip-hover: #23262f;
+  --la-fill-tag: #262a35;
+  --la-fill-tag-hover: #383d4b;
+  --la-fill-dialog-bar: #16181f;
+  --la-fill-header-solid: #0d0f14;
   --la-mesh-opacity: 0.5;
   --la-lift: 0px;
 
