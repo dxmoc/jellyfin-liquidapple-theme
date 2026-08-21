@@ -17,6 +17,7 @@
     --la-material: none;
     --la-material-thin: none;
     --la-material-thick: none;
+    --la-material-header: none;
     --la-material-tag: none;
     --la-refract-blur: 0px;
     --la-material-overlay: none;
@@ -37,6 +38,7 @@
     --la-fill-tag: #262a35;
     --la-fill-tag-hover: #383d4b;
     --la-fill-dialog-bar: #16181f;
+    --la-fill-header-solid: #0d0f14;
   }
 }
 
@@ -46,6 +48,7 @@
     --la-material: none;
     --la-material-thin: none;
     --la-material-thick: none;
+    --la-material-header: none;
     --la-material-tag: none;
     --la-refract-blur: 0px;
     --la-card-footer-blur: 0px;
@@ -65,6 +68,7 @@
     --la-fill-tag: #262a35;
     --la-fill-tag-hover: #383d4b;
     --la-fill-dialog-bar: #16181f;
+    --la-fill-header-solid: #0d0f14;
     --la-ground: #0b0c10;
   }
 
@@ -108,6 +112,7 @@
     --la-fill: rgba(255, 255, 255, 0.14);
     --la-fill-chrome: rgba(10, 11, 15, 0.9);
     --la-fill-dialog: rgba(20, 22, 30, 0.95);
+    --la-fill-header-solid: rgba(10, 11, 15, 0.92);
     --la-fill-tag: rgba(30, 33, 42, 0.86);
     --la-fill-tag-hover: rgba(58, 63, 77, 0.94);
     /* Whoever asks for more contrast asks for it here first. */
@@ -198,6 +203,7 @@
   --la-material: none;
   --la-material-thin: none;
   --la-material-thick: none;
+  --la-material-header: none;
   --la-material-tag: none;
   --la-refract-blur: 0px;
   /* These five are why the block above was only half true. The card overlay
@@ -220,6 +226,7 @@
   --la-fill-tag: #262a35;
   --la-fill-tag-hover: #383d4b;
   --la-fill-dialog-bar: #16181f;
+  --la-fill-header-solid: #0d0f14;
   --la-mesh-opacity: 0.5;
   --la-lift: 0px;
 

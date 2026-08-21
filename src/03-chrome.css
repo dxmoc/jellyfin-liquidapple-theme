@@ -63,11 +63,33 @@
   padding-bottom: 0;
 }
 
+/* --- The bar's own material ----------------------------------------------
+   02's tier-1 recipe is written for a pane that lands on scrolling page
+   content. The header is the one pane that lands on *artwork* on every item
+   page, and glass amplifies whatever is behind it. --la-material-header and
+   --la-fill-header-solid — a calmer saturate and a denser fill — were added
+   for mobile on 2026-08-19 after the bar turned into a solid red slab over red
+   artwork; the desktop bar was left on the shared recipe and does exactly the
+   same thing. Measured on Avatar: Fire and Ash at 1537px, scrolled to y=441:
+   the bar's centre read rgb(130, 47, 13). An orange toolbar, reported the same
+   day as "die Topbar ändert die Farbe wenn ich runterscrolle".
+
+   So the header material is now the header's everywhere, not mobile's alone.
+   Two classes plus :not() to clear 02's `.skinHeader-blurred:not(.osdHeader)`;
+   the OSD header is excluded there and stays excluded here. */
+.skinHeader.skinHeader-blurred:not(.osdHeader),
+.skinHeader.skinHeader-withBackground:not(.osdHeader) {
+  background-color: var(--la-fill-header-solid);
+  -webkit-backdrop-filter: var(--la-material-header);
+  backdrop-filter: var(--la-material-header);
+}
+
 /* Mobile runs the bar full-bleed, so there are no side or top edges to draw —
    but --la-edge from 02 rings the whole pane, and those hairlines land right
    on the screen edges and read as a frame around a floating box. One bottom
-   hairline instead, and the calmer header material so bright artwork behind
-   the bar stops turning it into a slab of that colour. */
+   hairline instead. The fill and the material repeat the rule above on purpose:
+   this selector also catches a bare .skinHeader, which carries neither of the
+   two state classes and would otherwise be left transparent. */
 .layout-mobile .skinHeader:not(.osdHeader) {
   background-color: var(--la-fill-header-solid);
   -webkit-backdrop-filter: var(--la-material-header);
@@ -199,9 +221,12 @@
   mask: none;
   /* flush on mobile, so square — the capsule radius is added on desktop below */
   border-radius: 0;
-  background: var(--la-fill-chrome);
-  -webkit-backdrop-filter: var(--la-material);
-  backdrop-filter: var(--la-material);
+  /* The header's own material, not 02's — this pane fades in *over the hero
+     artwork*, which is the worst case the calmer recipe exists for. See the
+     material rule at the top of this file. */
+  background: var(--la-fill-header-solid);
+  -webkit-backdrop-filter: var(--la-material-header);
+  backdrop-filter: var(--la-material-header);
   box-shadow: var(--la-edge), var(--la-shadow-lg);
   opacity: 0;
   pointer-events: none;
